@@ -1,0 +1,28 @@
+<div>
+  <h1 class="section-heading">Admin Dashboard</h1>
+  <p class="mt-1 text-sm text-slate-500">Manage your storefront catalog, promotions and site configuration.</p>
+
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    @for (stat of stats; track stat.label) {
+      <a [routerLink]="stat.link" class="card-surface flex items-center gap-4 p-5 transition hover:border-amber-600/50">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
+          <lucide-icon [img]="stat.icon" class="h-5 w-5" />
+        </div>
+        <div>
+          <p class="text-2xl font-extrabold text-white">{{ stat.value() }}</p>
+          <p class="text-xs text-slate-500">{{ stat.label }}</p>
+        </div>
+      </a>
+    }
+  </div>
+
+  <div class="card-surface mt-6 p-5">
+    <h2 class="text-sm font-bold uppercase tracking-wide text-slate-300">Quick Actions</h2>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <a routerLink="/admin/products" class="btn-secondary">Add a Product</a>
+      <a routerLink="/admin/categories" class="btn-secondary">Manage Categories</a>
+      <a routerLink="/admin/carousel" class="btn-secondary">Update Carousel</a>
+      <a routerLink="/admin/footer" class="btn-secondary">Edit Footer Info</a>
+    </div>
+  </div>
+</div>

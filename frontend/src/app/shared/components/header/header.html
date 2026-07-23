@@ -1,0 +1,36 @@
+<header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <a routerLink="/" class="flex items-center gap-2 shrink-0">
+      <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-red-600">
+        <lucide-icon [img]="FlameIcon" class="h-5 w-5 text-white" />
+      </span>
+      <span class="text-lg font-extrabold tracking-tight text-white">
+        Surya <span class="text-amber-400">Crackers</span>
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-6 text-sm font-medium text-slate-300 sm:flex">
+      <a routerLink="/" routerLinkActive="text-amber-400" [routerLinkActiveOptions]="{ exact: true }" class="transition hover:text-amber-400">
+        Home
+      </a>
+      <a routerLink="/admin" routerLinkActive="text-amber-400" class="transition hover:text-amber-400">
+        Admin
+      </a>
+    </nav>
+
+    <a
+      routerLink="/checkout"
+      class="relative flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-amber-600 hover:text-amber-400"
+    >
+      <lucide-icon [img]="ShoppingCartIcon" class="h-4 w-4" />
+      <span class="hidden sm:inline">Cart</span>
+      @if (cartService.totalBoxes() > 0) {
+        <span
+          class="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white"
+        >
+          {{ cartService.totalBoxes() }}
+        </span>
+      }
+    </a>
+  </div>
+</header>

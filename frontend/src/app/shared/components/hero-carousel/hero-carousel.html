@@ -1,0 +1,51 @@
+<div class="relative w-full overflow-hidden rounded-2xl border border-slate-800">
+  @if (banners().length > 0) {
+    <div
+      class="flex transition-transform duration-500 ease-out"
+      [style.transform]="'translateX(-' + (activeIndex() * 100) + '%)'"
+    >
+      @for (banner of banners(); track banner.id) {
+        <div class="relative aspect-[16/7] w-full shrink-0 sm:aspect-[16/6]">
+          <img [src]="banner.imageUrl" [alt]="banner.title" class="h-full w-full object-cover" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
+            <h2 class="text-xl font-extrabold text-white drop-shadow sm:text-3xl">{{ banner.title }}</h2>
+            <p class="mt-1 max-w-md text-sm text-slate-200/90 sm:text-base">{{ banner.subtitle }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+      (click)="previous()"
+      aria-label="Previous banner"
+    >
+      <lucide-icon [img]="ChevronLeftIcon" class="h-5 w-5" />
+    </button>
+    <button
+      type="button"
+      class="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+      (click)="next()"
+      aria-label="Next banner"
+    >
+      <lucide-icon [img]="ChevronRightIcon" class="h-5 w-5" />
+    </button>
+
+    <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+      @for (banner of banners(); track banner.id; let i = $index) {
+        <button
+          type="button"
+          class="h-1.5 rounded-full transition-all"
+          [class.w-6]="i === activeIndex()"
+          [class.bg-amber-500]="i === activeIndex()"
+          [class.w-1.5]="i !== activeIndex()"
+          [class.bg-slate-500]="i !== activeIndex()"
+          (click)="goTo(i)"
+          [attr.aria-label]="'Go to banner ' + (i + 1)"
+        ></button>
+      }
+    </div>
+  }
+</div>

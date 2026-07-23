@@ -1,0 +1,127 @@
+<div>
+  <h1 class="section-heading">Product Addition Panel</h1>
+  <p class="mt-1 text-sm text-slate-500">Add new inventory items or edit existing ones.</p>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <!-- Form -->
+    <div class="card-surface h-fit p-5 lg:col-span-1">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-300">
+          {{ editingId() ? 'Edit Product' : 'Add Product' }}
+        </h2>
+        @if (editingId()) {
+          <button type="button" class="text-slate-500 hover:text-slate-300" (click)="cancelEdit()" aria-label="Cancel edit">
+            <lucide-icon [img]="XIcon" class="h-4 w-4" />
+          </button>
+        }
+      </div>
+
+      <form [formGroup]="form" class="mt-4 flex flex-col gap-4" (ngSubmit)="submit()">
+        <div>
+          <label class="field-label" for="prod-name">Product Name</label>
+          <input id="prod-name" type="text" formControlName="name" class="input-field" placeholder="e.g. Golden Sparklers 10&quot;" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <p class="field-error">Product name is required.</p>
+          }
+        </div>
+
+        <div>
+          <label class="field-label" for="prod-category">Category</label>
+          <select id="prod-category" formControlName="categorySlug" class="input-field">
+            <option value="" disabled>Select a category</option>
+            @for (category of catalogService.categories(); track category.id) {
+              <option [value]="category.slug">{{ category.name }}</option>
+            }
+          </select>
+          @if (form.controls.categorySlug.invalid && form.controls.categorySlug.touched) {
+            <p class="field-error">Please select a category.</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label" for="prod-price">Price (₹)</label>
+            <input id="prod-price" type="number" min="1" formControlName="price" class="input-field" />
+            @if (form.controls.price.invalid && form.controls.price.touched) {
+              <p class="field-error">Enter a valid price.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label" for="prod-box">Box Quantity</label>
+            <input id="prod-box" type="text" formControlName="boxQuantity" class="input-field" placeholder="10 Pcs per box" />
+            @if (form.controls.boxQuantity.invalid && form.controls.boxQuantity.touched) {
+              <p class="field-error">Required.</p>
+            }
+          </div>
+        </div>
+
+        <app-image-upload-field formControlName="imageUrl" label="Product Image" />
+        @if (form.controls.imageUrl.invalid && form.controls.imageUrl.touched) {
+          <p class="field-error -mt-2">Please choose or paste a product image.</p>
+        }
+
+        <div>
+          <label class="field-label" for="prod-video">YouTube Video URL (optional)</label>
+          <input
+            id="prod-video"
+            type="text"
+            formControlName="videoUrl"
+            class="input-field"
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+        </div>
+
+        <div>
+          <label class="field-label" for="prod-safety">Safety Instructions</label>
+          <textarea
+            id="prod-safety"
+            rows="3"
+            formControlName="safetyInstructions"
+            class="input-field resize-none"
+            placeholder="Usage and safety guidance for this product"
+          ></textarea>
+          @if (form.controls.safetyInstructions.invalid && form.controls.safetyInstructions.touched) {
+            <p class="field-error">Please provide safety instructions (min 10 characters).</p>
+          }
+        </div>
+
+        <app-toggle-switch formControlName="isFeatured" label="Featured Product" />
+
+        <button type="submit" class="btn-primary mt-1">
+          <lucide-icon [img]="editingId() ? PencilIcon : PlusIcon" class="h-4 w-4" />
+          {{ editingId() ? 'Save Changes' : 'Add Product' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- List -->
+    <div class="flex flex-col gap-3 lg:col-span-2">
+      @for (product of catalogService.products(); track product.id) {
+        <div class="card-surface flex flex-wrap items-center gap-4 p-4">
+          <img [src]="product.imageUrl" [alt]="product.name" class="h-14 w-14 rounded-lg object-cover" />
+          <div class="min-w-[10rem] flex-1">
+            <p class="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
+              {{ product.name }}
+              @if (product.isFeatured) {
+                <lucide-icon [img]="StarIcon" class="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              }
+            </p>
+            <p class="text-xs text-slate-500">{{ categoryName(product.categorySlug) }} · {{ product.boxQuantity }}</p>
+          </div>
+          <p class="text-sm font-bold text-amber-400">₹{{ product.price }}</p>
+          <div class="flex gap-2">
+            <button type="button" class="btn-secondary !px-2 !py-1.5 text-xs" (click)="startEdit(product)">
+              <lucide-icon [img]="PencilIcon" class="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button type="button" class="btn-danger !px-2 !py-1.5 text-xs" (click)="deleteProduct(product.id)" aria-label="Delete product">
+              <lucide-icon [img]="Trash2Icon" class="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-sm text-slate-500">No products yet — add your first one.</p>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,6 @@
+# Node (root-level stray install)
+/node_modules
+
+# OS
+.DS_Store
+Thumbs.db

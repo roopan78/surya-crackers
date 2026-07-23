@@ -1,0 +1,9 @@
+<button
+  type="button"
+  class="pill"
+  [class.pill-active]="active()"
+  [class.pill-inactive]="!active()"
+  (click)="selected.emit(category())"
+>
+  {{ category().name }}
+</button>

@@ -1,0 +1,27 @@
+<div>
+  <label class="field-label">{{ label() }}</label>
+  <div class="flex items-center gap-3">
+    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-700 bg-slate-900">
+      @if (value) {
+        <img [src]="value" alt="Preview" class="h-full w-full object-cover" />
+      } @else {
+        <lucide-icon [img]="ImagePlusIcon" class="h-6 w-6 text-slate-600" />
+      }
+    </div>
+    <div class="flex flex-1 flex-col gap-2">
+      <input
+        type="file"
+        accept="image/*"
+        class="block w-full text-xs text-slate-400 file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700"
+        (change)="onFileSelected($event)"
+      />
+      <input
+        type="text"
+        placeholder="or paste an image URL"
+        class="input-field !py-1.5 text-xs"
+        [ngModel]="value"
+        (ngModelChange)="onUrlInput($event)"
+      />
+    </div>
+  </div>
+</div>

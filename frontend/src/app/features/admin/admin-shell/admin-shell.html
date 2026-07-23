@@ -1,0 +1,53 @@
+<div class="flex min-h-screen bg-slate-950">
+  <!-- Sidebar -->
+  <aside class="hidden w-60 shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 sm:flex">
+    <div class="border-b border-slate-800 px-5 py-5">
+      <p class="text-xs font-bold uppercase tracking-widest text-amber-500">Surya Crackers</p>
+      <p class="text-sm font-semibold text-slate-200">Admin Workspace</p>
+    </div>
+
+    <nav class="flex flex-1 flex-col gap-1 p-3">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-amber-500/10 text-amber-400 border-amber-600/40"
+          [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+          class="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100"
+        >
+          <lucide-icon [img]="item.icon" class="h-4 w-4" />
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="border-t border-slate-800 p-3">
+      <a
+        routerLink="/"
+        class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-200"
+      >
+        <lucide-icon [img]="ExternalLinkIcon" class="h-4 w-4" />
+        Back to Storefront
+      </a>
+    </div>
+  </aside>
+
+  <!-- Mobile top nav -->
+  <nav class="scrollbar-thin fixed inset-x-0 top-0 z-30 flex gap-2 overflow-x-auto border-b border-slate-800 bg-slate-950/95 px-3 py-2 backdrop-blur sm:hidden">
+    @for (item of navItems; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="bg-amber-500/15 text-amber-400"
+        [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+        class="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-800 px-3 py-1.5 text-xs font-medium text-slate-400"
+      >
+        <lucide-icon [img]="item.icon" class="h-3.5 w-3.5" />
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <!-- Content -->
+  <main class="min-w-0 flex-1 px-4 py-6 pt-16 sm:px-8 sm:py-8 sm:pt-8">
+    <router-outlet />
+  </main>
+</div>

@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dark-slate + amber/red "fireworks" palette */
+  --color-slate-950: #05060a;
+  --color-brand-bg: #0b0e14;
+  --color-brand-surface: #12161f;
+  --color-brand-surface-2: #1a1f2b;
+  --color-brand-border: #262c3a;
+
+  --color-brand-amber: #f59e0b;
+  --color-brand-amber-hover: #d97706;
+  --color-brand-red: #dc2626;
+  --color-brand-red-hover: #b91c1c;
+
+  --font-display: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: #e7e9ee;
+  font-family: var(--font-display);
+}
+
+/* Utility button classes used across the app */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-red-600 px-5 py-2.5 font-semibold text-white shadow-lg shadow-red-900/30 transition hover:from-amber-400 hover:to-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-5 py-2.5 font-semibold text-slate-100 transition hover:bg-slate-700 active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white transition hover:bg-red-600 active:scale-[0.98];
+  }
+
+  .card-surface {
+    @apply rounded-xl border border-slate-800 bg-slate-900/60 shadow-xl shadow-black/20 backdrop-blur-sm;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-300;
+  }
+
+  .field-error {
+    @apply mt-1 text-xs font-medium text-red-400;
+  }
+
+  .section-heading {
+    @apply text-2xl font-bold tracking-tight text-slate-50 sm:text-3xl;
+  }
+
+  .pill {
+    @apply inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition;
+  }
+
+  .pill-active {
+    @apply border-amber-500 bg-amber-500/15 text-amber-300;
+  }
+
+  .pill-inactive {
+    @apply border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:text-white;
+  }
+}
+
+/* Slim amber scrollbars for horizontal rails */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #f59e0b;
+  border-radius: 9999px;
+}

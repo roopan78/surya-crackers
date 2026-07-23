@@ -1,0 +1,20 @@
+<label class="inline-flex cursor-pointer items-center gap-3" [class.opacity-50]="disabled">
+  <button
+    type="button"
+    role="switch"
+    [attr.aria-checked]="checked"
+    class="relative h-6 w-11 shrink-0 rounded-full transition"
+    [class.bg-amber-500]="checked"
+    [class.bg-slate-700]="!checked"
+    (click)="toggle()"
+  >
+    <span
+      class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+      [class.translate-x-5]="checked"
+      [class.translate-x-0.5]="!checked"
+    ></span>
+  </button>
+  @if (label()) {
+    <span class="text-sm font-medium text-slate-300">{{ label() }}</span>
+  }
+</label>

@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING_WHATSAPP
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imagePath   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                 String   @id @default(cuid())
+  name               String
+  sku                String   @unique
+  slug               String   @unique
+  categoryId         String
+  price              Decimal  @db.Decimal(10, 2)
+  boxQuantity        String
+  imageUrls          String[]
+  videoUrl           String?
+  safetyInstructions String
+  isFeatured         Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  stockCount         Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([isActive])
+  @@map("products")
+}
+
+model CarouselBanner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("carousel_banners")
+}
+
+// Singleton row: application code always reads/writes the record where id = 1.
+model FooterConfig {
+  id                Int      @id @default(1)
+  shopName          String
+  address           String
+  licenseNumber     String
+  phone             String
+  whatsappNumber    String
+  safetyDisclaimer  String
+  updatedAt         DateTime @updatedAt
+
+  @@map("footer_config")
+}
+
+model OrderLedger {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  customerName    String
+  deliveryAddress String
+  phone           String
+  preferredDate   DateTime
+  items           Json
+  estimatedTotal  Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(PENDING_WHATSAPP)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("order_ledger")
+}

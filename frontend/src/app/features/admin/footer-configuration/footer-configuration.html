@@ -1,0 +1,62 @@
+<div>
+  <h1 class="section-heading">Footer Configuration</h1>
+  <p class="mt-1 text-sm text-slate-500">Manage shop details, licensing and the site-wide safety disclaimer.</p>
+
+  <div class="card-surface mt-6 max-w-2xl p-5">
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+      <div>
+        <label class="field-label" for="shop-name">Shop Name</label>
+        <input id="shop-name" type="text" formControlName="shopName" class="input-field" />
+        @if (form.controls.shopName.invalid && form.controls.shopName.touched) {
+          <p class="field-error">Shop name is required.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="shop-address">Address</label>
+        <textarea id="shop-address" rows="2" formControlName="address" class="input-field resize-none"></textarea>
+        @if (form.controls.address.invalid && form.controls.address.touched) {
+          <p class="field-error">Address is required.</p>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="license-number">License Number</label>
+          <input id="license-number" type="text" formControlName="licenseNumber" class="input-field" />
+          @if (form.controls.licenseNumber.invalid && form.controls.licenseNumber.touched) {
+            <p class="field-error">License number is required.</p>
+          }
+        </div>
+        <div>
+          <label class="field-label" for="phone">Contact Phone</label>
+          <input id="phone" type="text" formControlName="phone" class="input-field" />
+          @if (form.controls.phone.invalid && form.controls.phone.touched) {
+            <p class="field-error">Phone is required.</p>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="whatsapp-number">WhatsApp Number (digits only, with country code)</label>
+        <input id="whatsapp-number" type="text" formControlName="whatsappNumber" class="input-field" placeholder="919876543210" />
+        @if (form.controls.whatsappNumber.invalid && form.controls.whatsappNumber.touched) {
+          <p class="field-error">Enter 10-15 digits, no symbols (e.g. 919876543210).</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="safety-disclaimer">Safety Disclaimer</label>
+        <textarea id="safety-disclaimer" rows="4" formControlName="safetyDisclaimer" class="input-field resize-none"></textarea>
+        @if (form.controls.safetyDisclaimer.invalid && form.controls.safetyDisclaimer.touched) {
+          <p class="field-error">Please provide a full disclaimer (min 20 characters).</p>
+        }
+      </div>
+
+      <button type="submit" class="btn-primary mt-1 self-start">
+        <lucide-icon [img]="saved() ? CheckCircle2Icon : SaveIcon" class="h-4 w-4" />
+        {{ saved() ? 'Saved!' : 'Save Configuration' }}
+      </button>
+    </form>
+  </div>
+</div>

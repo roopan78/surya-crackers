@@ -1,0 +1,20 @@
+<div class="inline-flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1">
+  <button
+    type="button"
+    class="flex h-7 w-7 items-center justify-center rounded-md text-slate-300 transition hover:bg-slate-800 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+    [disabled]="disableDecrement()"
+    (click)="decrement.emit()"
+    aria-label="Decrease quantity"
+  >
+    <lucide-icon [img]="MinusIcon" class="h-4 w-4" />
+  </button>
+  <span class="w-6 text-center text-sm font-semibold text-white">{{ quantity() }}</span>
+  <button
+    type="button"
+    class="flex h-7 w-7 items-center justify-center rounded-md text-slate-300 transition hover:bg-slate-800 hover:text-amber-400"
+    (click)="increment.emit()"
+    aria-label="Increase quantity"
+  >
+    <lucide-icon [img]="PlusIcon" class="h-4 w-4" />
+  </button>
+</div>
