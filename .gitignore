@@ -1,6 +1,28 @@
-# Node (root-level stray install)
-/node_modules
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out-tsc/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
