@@ -1,11 +1,11 @@
-<div class="flex min-h-screen bg-slate-950">
+<div class="flex min-h-screen bg-brand-mist">
   <!-- Sidebar -->
-  <aside class="hidden w-60 shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 sm:flex">
-    <div class="border-b border-slate-800 px-5 py-5">
-      <p class="text-xs font-bold uppercase tracking-widest text-amber-500">Surya Crackers</p>
-      <p class="text-sm font-semibold text-slate-200">Admin Workspace</p>
+  <aside class="hidden w-64 shrink-0 flex-col border-r border-black/5 bg-white/80 backdrop-blur-xl sm:flex">
+    <div class="border-b border-black/5 px-5 py-5">
+      <p class="text-xs font-bold uppercase tracking-widest text-brand-gold">Surya Crackers</p>
+      <p class="font-[family-name:--font-display] text-sm font-bold text-brand-charcoal">Admin Workspace</p>
       @if (username()) {
-        <p class="mt-1 text-xs text-slate-500">Signed in as {{ username() }}</p>
+        <p class="mt-1 text-xs text-brand-ink-muted">Signed in as {{ username() }}</p>
       }
     </div>
 
@@ -13,9 +13,9 @@
       @for (item of navItems; track item.path) {
         <a
           [routerLink]="item.path"
-          routerLinkActive="bg-amber-500/10 text-amber-400 border-amber-600/40"
+          routerLinkActive="!bg-brand-charcoal !text-white shadow-md shadow-brand-charcoal/20"
           [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
-          class="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100"
+          class="flex items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-sm font-medium text-brand-ink-secondary transition hover:bg-black/5 hover:text-brand-charcoal"
         >
           <lucide-icon [img]="item.icon" class="h-4 w-4" />
           {{ item.label }}
@@ -23,10 +23,10 @@
       }
     </nav>
 
-    <div class="border-t border-slate-800 p-3">
+    <div class="border-t border-black/5 p-3">
       <a
         routerLink="/"
-        class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-200"
+        class="flex items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-ink-secondary transition hover:bg-black/5 hover:text-brand-charcoal"
       >
         <lucide-icon [img]="ExternalLinkIcon" class="h-4 w-4" />
         Back to Storefront
@@ -34,7 +34,7 @@
       <button
         type="button"
         (click)="logout()"
-        class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400/80 transition hover:bg-red-950/40 hover:text-red-400"
+        class="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-red/80 transition hover:bg-brand-red-soft hover:text-brand-red"
       >
         <lucide-icon [img]="LogOutIcon" class="h-4 w-4" />
         Log Out
@@ -43,13 +43,13 @@
   </aside>
 
   <!-- Mobile top nav -->
-  <nav class="scrollbar-thin fixed inset-x-0 top-0 z-30 flex gap-2 overflow-x-auto border-b border-slate-800 bg-slate-950/95 px-3 py-2 backdrop-blur sm:hidden">
+  <nav class="scrollbar-thin glass-nav fixed inset-x-0 top-0 z-30 flex gap-2 overflow-x-auto px-3 py-2 sm:hidden">
     @for (item of navItems; track item.path) {
       <a
         [routerLink]="item.path"
-        routerLinkActive="bg-amber-500/15 text-amber-400"
+        routerLinkActive="!bg-brand-charcoal !text-white"
         [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
-        class="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-800 px-3 py-1.5 text-xs font-medium text-slate-400"
+        class="flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-medium text-brand-ink-secondary"
       >
         <lucide-icon [img]="item.icon" class="h-3.5 w-3.5" />
         {{ item.label }}

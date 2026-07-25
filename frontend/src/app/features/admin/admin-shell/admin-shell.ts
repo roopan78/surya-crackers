@@ -7,6 +7,7 @@ import {
   PackagePlus,
   GalleryHorizontal,
   Settings,
+  ClipboardList,
   ExternalLink,
   LogOut,
 } from 'lucide-angular';
@@ -35,6 +36,7 @@ export class AdminShell {
 
   readonly navItems: AdminNavItem[] = [
     { label: 'Dashboard', path: '/admin', icon: LayoutGrid },
+    { label: 'Orders', path: '/admin/orders', icon: ClipboardList },
     { label: 'Categories', path: '/admin/categories', icon: Tags },
     { label: 'Products', path: '/admin/products', icon: PackagePlus },
     { label: 'Carousel', path: '/admin/carousel', icon: GalleryHorizontal },

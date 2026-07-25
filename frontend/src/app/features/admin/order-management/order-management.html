@@ -1,0 +1,102 @@
+<div>
+  <h1 class="section-heading">Order List</h1>
+  <p class="mt-1 text-sm text-brand-ink-secondary">Track incoming WhatsApp orders and update their fulfillment status.</p>
+
+  <!-- Filters -->
+  <div class="glass-card-solid mt-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+    <input
+      type="text"
+      [ngModel]="searchTerm()"
+      (ngModelChange)="searchTerm.set($event)"
+      placeholder="Search by customer or order number…"
+      class="input-field sm:max-w-xs"
+    />
+    <select
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event); loadOrders()"
+      class="input-field sm:max-w-[10rem]"
+    >
+      @for (option of statusOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="glass-card-solid mt-4 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="text-xs uppercase tracking-wide text-brand-ink-muted">
+            <th class="px-5 py-3 font-semibold">Order</th>
+            <th class="px-5 py-3 font-semibold">Customer</th>
+            <th class="px-5 py-3 font-semibold">Phone</th>
+            <th class="px-5 py-3 font-semibold">Total</th>
+            <th class="px-5 py-3 font-semibold">Delivery Date</th>
+            <th class="px-5 py-3 font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of pagedOrders(); track order.id) {
+            <tr class="cursor-pointer border-t border-black/5 transition hover:bg-black/[0.02]" (click)="toggleExpand(order.id)">
+              <td class="px-5 py-3 font-semibold text-brand-charcoal">{{ order.orderNumber }}</td>
+              <td class="px-5 py-3 text-brand-ink-secondary">{{ order.customerName }}</td>
+              <td class="px-5 py-3 text-brand-ink-secondary">{{ order.phone }}</td>
+              <td class="px-5 py-3 font-semibold text-brand-charcoal">₹{{ order.estimatedTotal }}</td>
+              <td class="px-5 py-3 text-brand-ink-secondary">{{ order.preferredDate | date: 'mediumDate' }}</td>
+              <td class="px-5 py-3" (click)="$event.stopPropagation()">
+                <select
+                  [ngModel]="order.status"
+                  (ngModelChange)="updateStatus(order.id, $event)"
+                  class="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs font-semibold text-brand-charcoal outline-none focus:border-brand-red/50"
+                >
+                  <option value="PENDING_WHATSAPP">Pending</option>
+                  <option value="DISPATCHED">Dispatched</option>
+                  <option value="DELIVERED">Delivered</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </td>
+            </tr>
+            @if (expandedId() === order.id) {
+              <tr class="border-t border-black/5 bg-brand-mist/60">
+                <td colspan="6" class="px-5 py-4">
+                  <p class="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-ink-muted">
+                    <lucide-icon [img]="PackageIcon" class="h-3.5 w-3.5" />
+                    Items
+                  </p>
+                  <div class="flex flex-col gap-1.5">
+                    @for (item of order.items; track item.productId) {
+                      <div class="flex items-center justify-between text-sm text-brand-ink-secondary">
+                        <span>{{ item.name }} <span class="text-brand-ink-muted">· {{ item.boxQuantity }}</span></span>
+                        <span>{{ item.boxes }} × ₹{{ item.price }} = ₹{{ item.boxes * item.price }}</span>
+                      </div>
+                    }
+                  </div>
+                  <p class="mt-2 text-xs text-brand-ink-muted">Delivery address: {{ order.deliveryAddress }}</p>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-5 py-10 text-center text-sm text-brand-ink-muted">No orders match this filter.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between border-t border-black/5 px-5 py-3">
+        <p class="text-xs text-brand-ink-muted">Page {{ page() }} of {{ totalPages() }}</p>
+        <div class="flex gap-2">
+          <button type="button" class="btn-secondary !px-2.5 !py-1.5" [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+            <lucide-icon [img]="ChevronLeftIcon" class="h-4 w-4" />
+          </button>
+          <button type="button" class="btn-secondary !px-2.5 !py-1.5" [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+            <lucide-icon [img]="ChevronRightIcon" class="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

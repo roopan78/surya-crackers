@@ -1,16 +1,23 @@
-<div class="relative w-full overflow-hidden rounded-2xl border border-slate-800">
+<div class="relative w-full overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(17,24,39,0.15)]">
   @if (banners().length > 0) {
     <div
-      class="flex transition-transform duration-500 ease-out"
+      class="flex transition-transform duration-700 ease-out"
       [style.transform]="'translateX(-' + (activeIndex() * 100) + '%)'"
     >
       @for (banner of banners(); track banner.id) {
-        <div class="relative aspect-[16/7] w-full shrink-0 sm:aspect-[16/6]">
+        <div class="relative aspect-[4/5] w-full shrink-0 sm:aspect-[16/7]">
           <img [src]="banner.imageUrl" [alt]="banner.title" class="h-full w-full object-cover" />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
-            <h2 class="text-xl font-extrabold text-white drop-shadow sm:text-3xl">{{ banner.title }}</h2>
-            <p class="mt-1 max-w-md text-sm text-slate-200/90 sm:text-base">{{ banner.subtitle }}</p>
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-charcoal/85 via-brand-charcoal/25 to-brand-charcoal/10"></div>
+
+          <div class="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-8 sm:max-w-md">
+            <div class="glass-card animate-float p-5 sm:p-7">
+              <p class="section-eyebrow">Festive Collection</p>
+              <h2 class="mt-1.5 font-[family-name:--font-display] text-xl font-extrabold tracking-tight text-brand-charcoal sm:text-3xl">
+                {{ banner.title }}
+              </h2>
+              <p class="mt-2 text-sm text-brand-ink-secondary sm:text-base">{{ banner.subtitle }}</p>
+              <a href="#shop" class="btn-primary mt-4 !py-2.5">Shop Now</a>
+            </div>
           </div>
         </div>
       }
@@ -18,7 +25,7 @@
 
     <button
       type="button"
-      class="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+      class="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white backdrop-blur-xl transition hover:bg-white/50"
       (click)="previous()"
       aria-label="Previous banner"
     >
@@ -26,22 +33,22 @@
     </button>
     <button
       type="button"
-      class="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+      class="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white backdrop-blur-xl transition hover:bg-white/50"
       (click)="next()"
       aria-label="Next banner"
     >
       <lucide-icon [img]="ChevronRightIcon" class="h-5 w-5" />
     </button>
 
-    <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+    <div class="absolute right-4 top-4 flex gap-1.5 sm:right-6 sm:top-6">
       @for (banner of banners(); track banner.id; let i = $index) {
         <button
           type="button"
           class="h-1.5 rounded-full transition-all"
           [class.w-6]="i === activeIndex()"
-          [class.bg-amber-500]="i === activeIndex()"
+          [class.bg-brand-gold]="i === activeIndex()"
           [class.w-1.5]="i !== activeIndex()"
-          [class.bg-slate-500]="i !== activeIndex()"
+          [class.bg-white/50]="i !== activeIndex()"
           (click)="goTo(i)"
           [attr.aria-label]="'Go to banner ' + (i + 1)"
         ></button>

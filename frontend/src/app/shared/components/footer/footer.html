@@ -1,44 +1,71 @@
-<footer class="border-t border-slate-800 bg-slate-950">
-  <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-    <div class="grid gap-8 sm:grid-cols-3">
+<footer class="border-t border-black/5 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
       <div>
         <div class="flex items-center gap-2">
-          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-red-600">
-            <lucide-icon [img]="FlameIcon" class="h-4 w-4 text-white" />
+          <span class="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-charcoal">
+            <lucide-icon [img]="FlameIcon" class="h-4.5 w-4.5 text-brand-gold" />
           </span>
-          <span class="text-base font-bold text-white">{{ catalogService.footerConfig().shopName }}</span>
+          <span class="font-[family-name:--font-display] text-base font-bold text-brand-charcoal">{{ catalogService.footerConfig().shopName }}</span>
         </div>
-        <p class="mt-3 flex items-start gap-2 text-sm text-slate-400">
-          <lucide-icon [img]="MapPinIcon" class="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+        <p class="mt-4 flex items-start gap-2 text-sm text-brand-ink-secondary">
+          <lucide-icon [img]="MapPinIcon" class="mt-0.5 h-4 w-4 shrink-0 text-brand-ink-muted" />
           {{ catalogService.footerConfig().address }}
         </p>
-        <p class="mt-2 flex items-center gap-2 text-sm text-slate-400">
-          <lucide-icon [img]="PhoneIcon" class="h-4 w-4 shrink-0 text-slate-500" />
+        <p class="mt-2 flex items-center gap-2 text-sm text-brand-ink-secondary">
+          <lucide-icon [img]="PhoneIcon" class="h-4 w-4 shrink-0 text-brand-ink-muted" />
           {{ catalogService.footerConfig().phone }}
         </p>
+
+        <div class="mt-5 flex items-center gap-2">
+          <a [href]="whatsappLink" target="_blank" rel="noopener noreferrer" class="btn-ghost !p-2.5 text-emerald-600 hover:bg-emerald-50" aria-label="WhatsApp">
+            <lucide-icon [img]="MessageCircleIcon" class="h-4.5 w-4.5" />
+          </a>
+          <a href="#" class="btn-ghost !p-2.5" aria-label="Instagram">
+            <lucide-icon [img]="InstagramIcon" class="h-4.5 w-4.5" />
+          </a>
+          <a href="#" class="btn-ghost !p-2.5" aria-label="Facebook">
+            <lucide-icon [img]="FacebookIcon" class="h-4.5 w-4.5" />
+          </a>
+        </div>
       </div>
 
       <div>
-        <h4 class="text-sm font-bold uppercase tracking-wide text-slate-200">Licensing</h4>
-        <p class="mt-3 flex items-center gap-2 text-sm text-slate-400">
-          <lucide-icon [img]="ShieldCheckIcon" class="h-4 w-4 shrink-0 text-amber-500" />
+        <h4 class="section-eyebrow">Licensing</h4>
+        <p class="mt-3 flex items-center gap-2 text-sm text-brand-ink-secondary">
+          <lucide-icon [img]="ShieldCheckIcon" class="h-4 w-4 shrink-0 text-brand-gold" />
           License No. {{ catalogService.footerConfig().licenseNumber }}
         </p>
-        <p class="mt-2 text-sm text-slate-500">
+        <p class="mt-2 text-sm text-brand-ink-muted">
           Sale restricted to verified adults (18+) in accordance with local explosives regulations.
         </p>
       </div>
 
       <div>
-        <h4 class="text-sm font-bold uppercase tracking-wide text-slate-200">Safety Disclaimer</h4>
-        <p class="mt-3 text-sm leading-relaxed text-slate-500">
+        <h4 class="section-eyebrow">Policies</h4>
+        <ul class="mt-3 flex flex-col gap-2 text-sm text-brand-ink-secondary">
+          <li><a routerLink="/refund-policy" class="transition hover:text-brand-red">Refund Policy</a></li>
+          <li><a routerLink="/return-policy" class="transition hover:text-brand-red">Return Policy</a></li>
+          <li><a routerLink="/privacy-policy" class="transition hover:text-brand-red">Privacy Policy</a></li>
+          <li><a routerLink="/admin/login" class="transition hover:text-brand-red">Admin Login</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="section-eyebrow">Safety Disclaimer</h4>
+        <p class="mt-3 text-sm leading-relaxed text-brand-ink-muted">
           {{ catalogService.footerConfig().safetyDisclaimer }}
         </p>
       </div>
     </div>
 
-    <div class="mt-8 border-t border-slate-900 pt-6 text-center text-xs text-slate-600">
-      © {{ currentYear }} {{ catalogService.footerConfig().shopName }}. All rights reserved.
+    <div class="mt-10 flex flex-col items-center gap-2 border-t border-black/5 pt-6 text-center text-xs text-brand-ink-muted sm:flex-row sm:justify-between">
+      <span>© {{ currentYear }} {{ catalogService.footerConfig().shopName }}. All rights reserved.</span>
+      <span class="flex gap-4">
+        <a routerLink="/refund-policy" class="hover:text-brand-red">Refund Policy</a>
+        <a routerLink="/return-policy" class="hover:text-brand-red">Return Policy</a>
+        <a routerLink="/privacy-policy" class="hover:text-brand-red">Privacy Policy</a>
+      </span>
     </div>
   </div>
 </footer>

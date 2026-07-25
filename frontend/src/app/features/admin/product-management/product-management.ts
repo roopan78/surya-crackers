@@ -1,31 +1,43 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, Pencil, Trash2, Plus, X, Star } from 'lucide-angular';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule, Pencil, Trash2, Plus, X, Star, Search } from 'lucide-angular';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
 import { Product } from '../../../core/models';
 import { ImageUploadField } from '../../../shared/components/image-upload-field/image-upload-field';
 import { ToggleSwitch } from '../../../shared/components/toggle-switch/toggle-switch';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ToastService } from '../../../shared/services/toast.service';
 import { slugify } from '../../../shared/utils/slugify.util';
 
 @Component({
   selector: 'app-product-management',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule, ImageUploadField, ToggleSwitch],
+  imports: [ReactiveFormsModule, FormsModule, LucideAngularModule, ImageUploadField, ToggleSwitch, ConfirmModal],
   templateUrl: './product-management.html',
 })
 export class ProductManagement implements OnInit {
   readonly adminCatalogService = inject(AdminCatalogService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly PencilIcon = Pencil;
   readonly Trash2Icon = Trash2;
   readonly PlusIcon = Plus;
   readonly XIcon = X;
   readonly StarIcon = Star;
+  readonly SearchIcon = Search;
 
   readonly editingId = signal<string | null>(null);
   readonly saving = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly searchTerm = signal('');
+  readonly pendingDelete = signal<Product | null>(null);
+
+  readonly filteredProducts = computed(() => {
+    const query = this.searchTerm().trim().toLowerCase();
+    const products = this.adminCatalogService.products();
+    if (!query) return products;
+    return products.filter((p) => p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query));
+  });
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -57,7 +69,6 @@ export class ProductManagement implements OnInit {
 
   startEdit(product: Product): void {
     this.editingId.set(product.id);
-    this.errorMessage.set(null);
     const category = this.adminCatalogService.categories().find((c) => c.slug === product.categorySlug);
     this.form.setValue({
       name: product.name,
@@ -77,7 +88,6 @@ export class ProductManagement implements OnInit {
 
   cancelEdit(): void {
     this.editingId.set(null);
-    this.errorMessage.set(null);
     this.form.reset({
       name: '',
       categoryId: '',
@@ -118,7 +128,6 @@ export class ProductManagement implements OnInit {
     const editingId = this.editingId();
 
     this.saving.set(true);
-    this.errorMessage.set(null);
 
     const request = editingId
       ? this.adminCatalogService.updateProduct(editingId, payload)
@@ -127,22 +136,28 @@ export class ProductManagement implements OnInit {
     request.subscribe({
       next: () => {
         this.saving.set(false);
+        this.toastService.success(editingId ? 'Product updated.' : 'Product added.');
         this.cancelEdit();
       },
       error: () => {
         this.saving.set(false);
-        this.errorMessage.set('Could not save this product — check the SKU/slug are unique and try again.');
+        this.toastService.error('Could not save this product — check the SKU/slug are unique and try again.');
       },
     });
   }
 
-  deleteProduct(id: string): void {
-    if (this.editingId() === id) {
+  confirmDelete(): void {
+    const product = this.pendingDelete();
+    if (!product) return;
+
+    if (this.editingId() === product.id) {
       this.cancelEdit();
     }
-    this.adminCatalogService.deleteProduct(id).subscribe({
-      error: () => this.errorMessage.set('Could not delete this product — please try again.'),
+    this.adminCatalogService.deleteProduct(product.id).subscribe({
+      next: () => this.toastService.success('Product deleted.'),
+      error: () => this.toastService.error('Could not delete this product — please try again.'),
     });
+    this.pendingDelete.set(null);
   }
 
   categoryName(slug: string): string {

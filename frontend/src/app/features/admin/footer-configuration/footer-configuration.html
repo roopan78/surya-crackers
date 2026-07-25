@@ -1,8 +1,8 @@
 <div>
   <h1 class="section-heading">Footer Configuration</h1>
-  <p class="mt-1 text-sm text-slate-500">Manage shop details, licensing and the site-wide safety disclaimer.</p>
+  <p class="mt-1 text-sm text-brand-ink-secondary">Manage shop details, licensing and the site-wide safety disclaimer.</p>
 
-  <div class="card-surface mt-6 max-w-2xl p-5">
+  <div class="glass-card-solid mt-6 max-w-2xl p-6">
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
       <div>
         <label class="field-label" for="shop-name">Shop Name</label>
@@ -52,13 +52,6 @@
           <p class="field-error">Please provide a full disclaimer (min 20 characters).</p>
         }
       </div>
-
-      @if (errorMessage()) {
-        <p class="field-error flex items-center gap-1.5">
-          <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
-          {{ errorMessage() }}
-        </p>
-      }
 
       <button type="submit" class="btn-primary mt-1 self-start" [disabled]="saving()">
         <lucide-icon [img]="saved() ? CheckCircle2Icon : SaveIcon" class="h-4 w-4" />

@@ -1,0 +1,28 @@
+<section appScrollReveal>
+  <p class="section-eyebrow text-center">Testimonials</p>
+  <h2 class="section-heading mt-1 text-center">Loved By Families Across Tamil Nadu</h2>
+
+  <div class="mt-8 grid gap-5 sm:grid-cols-3">
+    @for (t of testimonials; track t.name) {
+      <div class="glass-card-solid hover-lift flex flex-col gap-4 p-6">
+        <lucide-icon [img]="QuoteIcon" class="h-6 w-6 text-brand-gold" />
+        <p class="flex-1 text-sm leading-relaxed text-brand-ink-secondary">&ldquo;{{ t.quote }}&rdquo;</p>
+        <div class="flex items-center gap-1">
+          @for (star of stars; track star) {
+            <lucide-icon
+              [img]="StarIcon"
+              class="h-3.5 w-3.5"
+              [class.text-brand-gold]="star <= t.rating"
+              [class.fill-brand-gold]="star <= t.rating"
+              [class.text-black/10]="star > t.rating"
+            />
+          }
+        </div>
+        <div>
+          <p class="text-sm font-bold text-brand-charcoal">{{ t.name }}</p>
+          <p class="text-xs text-brand-ink-muted">{{ t.location }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</section>

@@ -1,20 +1,20 @@
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
   @if (loadError()) {
-    <div class="card-surface flex flex-col items-center gap-3 p-10 text-center">
-      <p class="text-sm text-slate-400">Could not load the storefront right now. Please check your connection.</p>
+    <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
+      <p class="text-sm text-brand-ink-secondary">Could not load the storefront right now. Please check your connection.</p>
       <button type="button" class="btn-secondary" (click)="retry()">Try Again</button>
     </div>
   } @else if (loading()) {
-    <div class="animate-pulse">
-      <div class="h-48 rounded-2xl bg-slate-900 sm:h-72"></div>
+    <div>
+      <div class="skeleton h-64 rounded-[28px] sm:h-96"></div>
       <div class="mt-8 flex gap-2">
-        <div class="h-9 w-28 rounded-full bg-slate-900"></div>
-        <div class="h-9 w-24 rounded-full bg-slate-900"></div>
-        <div class="h-9 w-32 rounded-full bg-slate-900"></div>
+        <div class="skeleton h-10 w-28 rounded-full"></div>
+        <div class="skeleton h-10 w-24 rounded-full"></div>
+        <div class="skeleton h-10 w-32 rounded-full"></div>
       </div>
       <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
-          <div class="h-56 rounded-xl bg-slate-900"></div>
+          <div class="skeleton h-60 rounded-[22px]"></div>
         }
       </div>
     </div>
@@ -22,56 +22,82 @@
     <!-- Hero Carousel -->
     <app-hero-carousel [banners]="banners()" />
 
-    <!-- Category Navigation Pills -->
-    <div class="scrollbar-thin mt-8 flex gap-2 overflow-x-auto pb-2">
-      <button
-        type="button"
-        class="pill"
-        [class.pill-active]="selectedSlug() === ALL_SLUG"
-        [class.pill-inactive]="selectedSlug() !== ALL_SLUG"
-        (click)="selectCategory(null)"
-      >
-        All Products
-      </button>
-      @for (category of categories(); track category.id) {
-        <app-category-pill
-          [category]="category"
-          [active]="selectedSlug() === category.slug"
-          (selected)="selectCategory($event)"
-        />
+    <!-- Featured Categories -->
+    <div class="mt-14 sm:mt-20">
+      <app-featured-categories [categories]="categories()" (selected)="selectCategory($event)" />
+    </div>
+
+    <!-- Category Navigation Pills + Safety Notice -->
+    <div id="shop" class="mt-14 scroll-mt-20 sm:mt-20">
+      <div class="scrollbar-thin flex gap-2 overflow-x-auto pb-2">
+        <button
+          type="button"
+          class="pill"
+          [class.pill-active]="selectedSlug() === ALL_SLUG"
+          [class.pill-inactive]="selectedSlug() !== ALL_SLUG"
+          (click)="selectCategory(null)"
+        >
+          All Products
+        </button>
+        @for (category of categories(); track category.id) {
+          <app-category-pill
+            [category]="category"
+            [active]="selectedSlug() === category.slug"
+            (selected)="selectCategory($event)"
+          />
+        }
+      </div>
+
+      <div class="mt-6">
+        <app-safety-notice />
+      </div>
+
+      <!-- Featured Strip -->
+      @if (selectedSlug() === ALL_SLUG && featuredProducts().length > 0) {
+        <section class="mt-10">
+          <h2 class="section-heading">Featured Picks</h2>
+          <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            @for (product of featuredProducts(); track product.id) {
+              <app-product-card [product]="product" />
+            }
+          </div>
+        </section>
       }
-    </div>
 
-    <!-- Safety Notice -->
-    <div class="mt-6">
-      <app-safety-notice />
-    </div>
-
-    <!-- Featured Strip -->
-    @if (selectedSlug() === ALL_SLUG && featuredProducts().length > 0) {
+      <!-- Inventory Grid -->
       <section class="mt-10">
-        <h2 class="section-heading">Featured Picks</h2>
-        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          @for (product of featuredProducts(); track product.id) {
-            <app-product-card [product]="product" />
-          }
-        </div>
+        <h2 class="section-heading">{{ selectedCategoryName() }}</h2>
+
+        @if (visibleProducts().length > 0) {
+          <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            @for (product of visibleProducts(); track product.id) {
+              <app-product-card [product]="product" />
+            }
+          </div>
+        } @else {
+          <p class="mt-6 text-sm text-brand-ink-muted">No products found. Try a different category or search term.</p>
+        }
       </section>
-    }
+    </div>
 
-    <!-- Inventory Grid -->
-    <section class="mt-10">
-      <h2 class="section-heading">{{ selectedCategoryName() }}</h2>
+    <!-- Promo Banner -->
+    <div class="mt-14 sm:mt-20">
+      <app-promo-banner />
+    </div>
 
-      @if (visibleProducts().length > 0) {
-        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          @for (product of visibleProducts(); track product.id) {
-            <app-product-card [product]="product" />
-          }
-        </div>
-      } @else {
-        <p class="mt-6 text-sm text-slate-500">No products found in this category yet.</p>
-      }
-    </section>
+    <!-- Why Choose Us -->
+    <div class="mt-14 sm:mt-20">
+      <app-why-choose-us />
+    </div>
+
+    <!-- Testimonials -->
+    <div class="mt-14 sm:mt-20">
+      <app-testimonials />
+    </div>
+
+    <!-- FAQ -->
+    <div class="mt-14 sm:mt-20">
+      <app-faq-accordion />
+    </div>
   }
 </div>

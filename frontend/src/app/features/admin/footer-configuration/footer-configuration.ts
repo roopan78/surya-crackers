@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, Save, CheckCircle2, TriangleAlert } from 'lucide-angular';
+import { LucideAngularModule, Save, CheckCircle2 } from 'lucide-angular';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-footer-configuration',
@@ -12,14 +13,13 @@ import { AdminCatalogService } from '../../../core/services/admin-catalog.servic
 export class FooterConfiguration implements OnInit {
   private readonly adminCatalogService = inject(AdminCatalogService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly SaveIcon = Save;
   readonly CheckCircle2Icon = CheckCircle2;
-  readonly TriangleAlertIcon = TriangleAlert;
 
   readonly saved = signal(false);
   readonly saving = signal(false);
-  readonly errorMessage = signal<string | null>(null);
 
   readonly form = this.formBuilder.nonNullable.group({
     shopName: ['', [Validators.required]],
@@ -37,7 +37,7 @@ export class FooterConfiguration implements OnInit {
           this.form.setValue(config);
         }
       },
-      error: () => this.errorMessage.set('Could not load the current footer configuration.'),
+      error: () => this.toastService.error('Could not load the current footer configuration.'),
     });
   }
 
@@ -48,17 +48,17 @@ export class FooterConfiguration implements OnInit {
     }
 
     this.saving.set(true);
-    this.errorMessage.set(null);
 
     this.adminCatalogService.updateFooterConfig(this.form.getRawValue()).subscribe({
       next: () => {
         this.saving.set(false);
         this.saved.set(true);
+        this.toastService.success('Footer configuration saved.');
         setTimeout(() => this.saved.set(false), 2500);
       },
       error: () => {
         this.saving.set(false);
-        this.errorMessage.set('Could not save the footer configuration — please try again.');
+        this.toastService.error('Could not save the footer configuration — please try again.');
       },
     });
   }

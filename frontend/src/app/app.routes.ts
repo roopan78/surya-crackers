@@ -31,6 +31,18 @@ export const routes: Routes = [
         path: 'checkout',
         loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout),
       },
+      {
+        path: 'refund-policy',
+        loadComponent: () => import('./features/legal/refund-policy/refund-policy').then((m) => m.RefundPolicy),
+      },
+      {
+        path: 'return-policy',
+        loadComponent: () => import('./features/legal/return-policy/return-policy').then((m) => m.ReturnPolicy),
+      },
+      {
+        path: 'privacy-policy',
+        loadComponent: () => import('./features/legal/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
+      },
     ],
   },
   {
@@ -43,6 +55,11 @@ export const routes: Routes = [
         path: '',
         loadComponent: () =>
           import('./features/admin/dashboard-home/dashboard-home').then((m) => m.DashboardHome),
+      },
+      {
+        path: 'orders',
+        loadComponent: () =>
+          import('./features/admin/order-management/order-management').then((m) => m.OrderManagement),
       },
       {
         path: 'categories',

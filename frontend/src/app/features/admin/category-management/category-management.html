@@ -1,16 +1,16 @@
 <div>
   <h1 class="section-heading">Category Management</h1>
-  <p class="mt-1 text-sm text-slate-500">Add, edit and remove storefront product categories.</p>
+  <p class="mt-1 text-sm text-brand-ink-secondary">Add, edit and remove storefront product categories.</p>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-3">
     <!-- Form -->
-    <div class="card-surface h-fit p-5 lg:col-span-1">
+    <div class="glass-card-solid h-fit p-5 lg:col-span-1">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-300">
+        <h2 class="text-sm font-bold uppercase tracking-wide text-brand-ink-secondary">
           {{ editingId() ? 'Edit Category' : 'Add Category' }}
         </h2>
         @if (editingId()) {
-          <button type="button" class="text-slate-500 hover:text-slate-300" (click)="cancelEdit()" aria-label="Cancel edit">
+          <button type="button" class="text-brand-ink-muted hover:text-brand-charcoal" (click)="cancelEdit()" aria-label="Cancel edit">
             <lucide-icon [img]="XIcon" class="h-4 w-4" />
           </button>
         }
@@ -59,10 +59,6 @@
 
         <app-toggle-switch formControlName="isActive" label="Visible on storefront" />
 
-        @if (errorMessage()) {
-          <p class="field-error">{{ errorMessage() }}</p>
-        }
-
         <button type="submit" class="btn-primary mt-1" [disabled]="saving()">
           <lucide-icon [img]="editingId() ? PencilIcon : PlusIcon" class="h-4 w-4" />
           {{ saving() ? 'Saving…' : editingId() ? 'Save Changes' : 'Add Category' }}
@@ -71,32 +67,54 @@
     </div>
 
     <!-- List -->
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-3">
-      @for (category of adminCatalogService.categories(); track category.id) {
-        <div class="card-surface flex flex-col overflow-hidden" [class.opacity-50]="!category.isActive">
-          <img [src]="category.image" [alt]="category.name" class="h-28 w-full object-cover" />
-          <div class="flex flex-1 flex-col gap-1 p-3">
-            <p class="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
-              {{ category.name }}
-              @if (!category.isActive) {
-                <span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Hidden</span>
-              }
-            </p>
-            <p class="text-xs text-slate-500">/{{ category.slug }}</p>
-            <div class="mt-auto flex gap-2 pt-2">
-              <button type="button" class="btn-secondary flex-1 !px-2 !py-1.5 text-xs" (click)="startEdit(category)">
-                <lucide-icon [img]="PencilIcon" class="h-3.5 w-3.5" />
-                Edit
-              </button>
-              <button type="button" class="btn-danger !px-2 !py-1.5 text-xs" (click)="deleteCategory(category.id)" aria-label="Delete category">
-                <lucide-icon [img]="Trash2Icon" class="h-3.5 w-3.5" />
-              </button>
+    <div class="lg:col-span-2">
+      <div class="relative mb-4">
+        <lucide-icon [img]="SearchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted" />
+        <input
+          type="text"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          placeholder="Search categories…"
+          class="input-field !pl-10"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        @for (category of filteredCategories(); track category.id) {
+          <div class="glass-card-solid hover-lift flex flex-col overflow-hidden" [class.opacity-50]="!category.isActive">
+            <img [src]="category.image" [alt]="category.name" class="h-28 w-full object-cover" />
+            <div class="flex flex-1 flex-col gap-1 p-3">
+              <p class="flex items-center gap-1.5 text-sm font-semibold text-brand-charcoal">
+                {{ category.name }}
+                @if (!category.isActive) {
+                  <span class="rounded-full bg-black/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink-muted">Hidden</span>
+                }
+              </p>
+              <p class="text-xs text-brand-ink-muted">/{{ category.slug }}</p>
+              <div class="mt-auto flex gap-2 pt-2">
+                <button type="button" class="btn-secondary flex-1 !px-2 !py-1.5 text-xs" (click)="startEdit(category)">
+                  <lucide-icon [img]="PencilIcon" class="h-3.5 w-3.5" />
+                  Edit
+                </button>
+                <button type="button" class="btn-danger !px-2 !py-1.5 text-xs" (click)="pendingDelete.set(category)" aria-label="Delete category">
+                  <lucide-icon [img]="Trash2Icon" class="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      } @empty {
-        <p class="text-sm text-slate-500">No categories yet — add your first one.</p>
-      }
+        } @empty {
+          <p class="text-sm text-brand-ink-muted">No categories found.</p>
+        }
+      </div>
     </div>
   </div>
+
+  @if (pendingDelete(); as category) {
+    <app-confirm-modal
+      title="Delete this category?"
+      [message]="'\'' + category.name + '\' will be permanently removed. This cannot be undone.'"
+      (confirmed)="confirmDelete()"
+      (cancelled)="pendingDelete.set(null)"
+    />
+  }
 </div>

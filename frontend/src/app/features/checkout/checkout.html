@@ -2,9 +2,9 @@
   <h1 class="section-heading">Cart &amp; Checkout</h1>
 
   @if (cartService.isEmpty()) {
-    <div class="card-surface mt-8 flex flex-col items-center gap-4 p-12 text-center">
-      <lucide-icon [img]="ShoppingBagIcon" class="h-10 w-10 text-slate-600" />
-      <p class="text-slate-400">Your cart is empty.</p>
+    <div class="glass-card-solid mt-8 flex flex-col items-center gap-4 p-12 text-center">
+      <lucide-icon [img]="ShoppingBagIcon" class="h-10 w-10 text-brand-ink-muted" />
+      <p class="text-brand-ink-secondary">Your cart is empty.</p>
       <a routerLink="/" class="btn-primary">Browse Products</a>
     </div>
   } @else {
@@ -12,23 +12,23 @@
       <!-- Itemized Ledger -->
       <div class="flex flex-col gap-4 lg:col-span-2">
         @for (item of cartService.items(); track item.product.id) {
-          <div class="card-surface flex flex-wrap items-center gap-4 p-4">
-            <img [src]="item.product.imageUrl" [alt]="item.product.name" class="h-16 w-16 rounded-lg object-cover" />
+          <div class="glass-card-solid flex flex-wrap items-center gap-4 p-4">
+            <img [src]="item.product.imageUrl" [alt]="item.product.name" class="h-16 w-16 rounded-2xl object-cover" />
             <div class="min-w-[10rem] flex-1">
-              <p class="text-sm font-semibold text-slate-100">{{ item.product.name }}</p>
-              <p class="text-xs text-slate-500">{{ item.product.boxQuantity }} · ₹{{ item.product.price }}/box</p>
+              <p class="text-sm font-semibold text-brand-charcoal">{{ item.product.name }}</p>
+              <p class="text-xs text-brand-ink-muted">{{ item.product.boxQuantity }} · ₹{{ item.product.price }}/box</p>
             </div>
             <app-quantity-stepper
               [quantity]="item.boxes"
               (increment)="incrementItem(item.product.id)"
               (decrement)="decrementItem(item.product.id)"
             />
-            <p class="w-20 text-right text-sm font-bold text-amber-400">
+            <p class="w-20 text-right text-sm font-bold text-brand-charcoal">
               ₹{{ item.product.price * item.boxes }}
             </p>
             <button
               type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-red-950/50 hover:text-red-400"
+              class="flex h-8 w-8 items-center justify-center rounded-xl text-brand-ink-muted transition hover:bg-brand-red-soft hover:text-brand-red"
               (click)="removeItem(item.product.id)"
               aria-label="Remove item"
             >
@@ -37,17 +37,17 @@
           </div>
         }
 
-        <div class="card-surface flex items-center justify-between p-5">
-          <span class="text-sm font-medium text-slate-400">
+        <div class="glass-card-solid flex items-center justify-between p-5">
+          <span class="text-sm font-medium text-brand-ink-secondary">
             {{ cartService.totalLineItems() }} item(s) · {{ cartService.totalBoxes() }} box(es)
           </span>
-          <span class="text-xl font-extrabold text-white">Total: ₹{{ cartService.grandTotal() }}</span>
+          <span class="font-[family-name:--font-display] text-xl font-extrabold text-brand-charcoal">Total: ₹{{ cartService.grandTotal() }}</span>
         </div>
       </div>
 
       <!-- Delivery Form -->
-      <div class="card-surface h-fit p-5">
-        <h2 class="text-lg font-bold text-white">Delivery Details</h2>
+      <div class="glass-card-solid h-fit p-5">
+        <h2 class="text-lg font-bold text-brand-charcoal">Delivery Details</h2>
         <form [formGroup]="deliveryForm" class="mt-4 flex flex-col gap-4" (ngSubmit)="confirmOrderViaWhatsApp()">
           <div>
             <label class="field-label" for="name">Full Name</label>
@@ -104,7 +104,7 @@
             <lucide-icon [img]="MessageCircleIcon" class="h-4 w-4" />
             {{ submitting() ? 'Placing Order…' : 'Confirm Order via WhatsApp' }}
           </button>
-          <p class="text-center text-xs text-slate-500">
+          <p class="text-center text-xs text-brand-ink-muted">
             You'll be redirected to WhatsApp to send your order directly to us.
           </p>
         </form>

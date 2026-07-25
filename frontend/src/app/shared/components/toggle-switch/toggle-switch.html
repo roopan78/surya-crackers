@@ -4,8 +4,8 @@
     role="switch"
     [attr.aria-checked]="checked"
     class="relative h-6 w-11 shrink-0 rounded-full transition"
-    [class.bg-amber-500]="checked"
-    [class.bg-slate-700]="!checked"
+    [class.bg-brand-red]="checked"
+    [class.bg-black/15]="!checked"
     (click)="toggle()"
   >
     <span
@@ -15,6 +15,6 @@
     ></span>
   </button>
   @if (label()) {
-    <span class="text-sm font-medium text-slate-300">{{ label() }}</span>
+    <span class="text-sm font-medium text-brand-ink-secondary">{{ label() }}</span>
   }
 </label>

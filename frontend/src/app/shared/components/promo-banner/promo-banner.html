@@ -1,0 +1,27 @@
+<div
+  appScrollReveal
+  class="relative overflow-hidden rounded-[28px] bg-brand-charcoal px-6 py-10 sm:px-12 sm:py-14"
+>
+  <div class="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-gold/20 blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-brand-red/25 blur-3xl"></div>
+
+  <div class="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:justify-between sm:text-left">
+    <div class="flex items-center gap-4">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-gold/15 text-brand-gold">
+        <lucide-icon [img]="GiftIcon" class="h-7 w-7" />
+      </div>
+      <div>
+        <p class="section-eyebrow !text-brand-gold">Limited Time</p>
+        <h3 class="font-[family-name:--font-display] text-xl font-extrabold text-white sm:text-2xl">
+          Diwali Special — Up to 30% Off Storewide
+        </h3>
+        <p class="mt-1 text-sm text-white/60">Curated gift boxes &amp; family hampers, delivered safely to your door.</p>
+      </div>
+    </div>
+
+    <a href="#shop" class="btn-gold shrink-0">
+      Shop the Sale
+      <lucide-icon [img]="ArrowRightIcon" class="h-4 w-4" />
+    </a>
+  </div>
+</div>

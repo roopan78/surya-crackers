@@ -1,0 +1,16 @@
+<div class="fixed inset-0 z-[90] flex items-center justify-center bg-brand-charcoal/40 p-4 backdrop-blur-sm" (click)="cancelled.emit()">
+  <div class="glass-card-solid w-full max-w-sm p-6" (click)="$event.stopPropagation()">
+    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-red-soft">
+      <lucide-icon [img]="TriangleAlertIcon" class="h-5 w-5 text-brand-red" />
+    </div>
+    <h2 class="mt-4 text-lg font-bold text-brand-charcoal">{{ title() }}</h2>
+    <p class="mt-1.5 text-sm text-brand-ink-secondary">{{ message() }}</p>
+
+    <div class="mt-6 flex gap-3">
+      <button type="button" class="btn-secondary flex-1" (click)="cancelled.emit()">Cancel</button>
+      <button type="button" class="btn-danger flex-1 !border-transparent !bg-brand-red !text-white hover:!bg-brand-red-hover" (click)="confirmed.emit()">
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>

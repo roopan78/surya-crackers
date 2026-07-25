@@ -1,27 +1,32 @@
 <div
-  class="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center overflow-y-auto bg-gradient-to-b from-slate-950 via-[#160b08] to-slate-950 px-4 py-10 text-center"
+  class="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center overflow-y-auto bg-brand-charcoal px-4 py-10 text-center"
 >
-  <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-red-600 bg-red-600/10">
-    <lucide-icon [img]="ShieldAlertIcon" class="h-10 w-10 text-red-500" />
-  </div>
+  <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-red/20 blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-gold/15 blur-3xl"></div>
 
-  <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-red-500">Restricted Product Category</p>
-  <h1 class="section-heading max-w-xl text-white">Are you 18 years of age or older?</h1>
-  <p class="mt-4 max-w-md text-sm text-slate-400">
-    Firecrackers and fireworks are age-restricted, regulated products. You must confirm you are at least
-    18 years old and comply with local laws in your area before entering this store.
-  </p>
+  <div class="glass-card relative max-w-lg border-white/10 bg-white/[0.06] p-8 sm:p-12" style="backdrop-filter: blur(24px)">
+    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-brand-red bg-brand-red/10">
+      <lucide-icon [img]="ShieldAlertIcon" class="h-10 w-10 text-brand-red" />
+    </div>
 
-  <div class="mt-8 flex w-full max-w-xs flex-col gap-3 sm:max-w-sm sm:flex-row">
-    <button type="button" class="btn-primary flex-1" (click)="confirmAge()">Yes, I am 18+ — Enter Site</button>
-    <button type="button" class="btn-secondary flex-1" (click)="exitSite()">No, Exit</button>
-  </div>
-
-  <div class="mt-10 flex max-w-md items-start gap-2 rounded-lg border border-amber-900/40 bg-amber-500/5 p-4 text-left">
-    <lucide-icon [img]="TriangleAlertIcon" class="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-    <p class="text-xs leading-relaxed text-amber-200/80">
-      By entering, you confirm you will purchase and use these products responsibly, only where permitted,
-      and in accordance with all applicable safety regulations.
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-red">Restricted Product Category</p>
+    <h1 class="font-[family-name:--font-display] text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Are you 18 years of age or older?</h1>
+    <p class="mt-4 text-sm text-white/60">
+      Firecrackers and fireworks are age-restricted, regulated products. You must confirm you are at least
+      18 years old and comply with local laws in your area before entering this store.
     </p>
+
+    <div class="mt-8 flex w-full flex-col gap-3 sm:flex-row">
+      <button type="button" class="btn-primary flex-1" (click)="confirmAge()">Yes, I am 18+ — Enter Site</button>
+      <button type="button" class="btn-secondary flex-1 !border-white/15 !bg-white/10 !text-white hover:!bg-white/15" (click)="exitSite()">No, Exit</button>
+    </div>
+
+    <div class="mt-8 flex items-start gap-2 rounded-2xl border border-brand-gold/25 bg-brand-gold/5 p-4 text-left">
+      <lucide-icon [img]="TriangleAlertIcon" class="mt-0.5 h-4 w-4 shrink-0 text-brand-gold" />
+      <p class="text-xs leading-relaxed text-brand-gold/90">
+        By entering, you confirm you will purchase and use these products responsibly, only where permitted,
+        and in accordance with all applicable safety regulations.
+      </p>
+    </div>
   </div>
 </div>

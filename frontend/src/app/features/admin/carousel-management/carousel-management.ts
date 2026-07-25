@@ -5,16 +5,19 @@ import { AdminCatalogService } from '../../../core/services/admin-catalog.servic
 import { CarouselBanner } from '../../../core/models';
 import { ImageUploadField } from '../../../shared/components/image-upload-field/image-upload-field';
 import { ToggleSwitch } from '../../../shared/components/toggle-switch/toggle-switch';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-carousel-management',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule, ImageUploadField, ToggleSwitch],
+  imports: [ReactiveFormsModule, LucideAngularModule, ImageUploadField, ToggleSwitch, ConfirmModal],
   templateUrl: './carousel-management.html',
 })
 export class CarouselManagement implements OnInit {
   readonly adminCatalogService = inject(AdminCatalogService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly PencilIcon = Pencil;
   readonly Trash2Icon = Trash2;
@@ -25,7 +28,7 @@ export class CarouselManagement implements OnInit {
 
   readonly editingId = signal<string | null>(null);
   readonly saving = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly pendingDelete = signal<CarouselBanner | null>(null);
 
   readonly sortedBanners = computed(() =>
     [...this.adminCatalogService.banners()].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -45,7 +48,6 @@ export class CarouselManagement implements OnInit {
 
   startEdit(banner: CarouselBanner): void {
     this.editingId.set(banner.id);
-    this.errorMessage.set(null);
     this.form.setValue({
       title: banner.title,
       subtitle: banner.subtitle,
@@ -57,7 +59,6 @@ export class CarouselManagement implements OnInit {
 
   cancelEdit(): void {
     this.editingId.set(null);
-    this.errorMessage.set(null);
     const nextSortOrder = this.adminCatalogService.banners().length + 1;
     this.form.reset({ title: '', subtitle: '', imageUrl: '', sortOrder: nextSortOrder, isActive: true });
   }
@@ -72,7 +73,6 @@ export class CarouselManagement implements OnInit {
     const editingId = this.editingId();
 
     this.saving.set(true);
-    this.errorMessage.set(null);
 
     const request = editingId
       ? this.adminCatalogService.updateBanner(editingId, value)
@@ -81,22 +81,28 @@ export class CarouselManagement implements OnInit {
     request.subscribe({
       next: () => {
         this.saving.set(false);
+        this.toastService.success(editingId ? 'Banner updated.' : 'Banner added.');
         this.cancelEdit();
       },
       error: () => {
         this.saving.set(false);
-        this.errorMessage.set('Could not save this banner — please try again.');
+        this.toastService.error('Could not save this banner — please try again.');
       },
     });
   }
 
-  deleteBanner(id: string): void {
-    if (this.editingId() === id) {
+  confirmDelete(): void {
+    const banner = this.pendingDelete();
+    if (!banner) return;
+
+    if (this.editingId() === banner.id) {
       this.cancelEdit();
     }
-    this.adminCatalogService.deleteBanner(id).subscribe({
-      error: () => this.errorMessage.set('Could not delete this banner — please try again.'),
+    this.adminCatalogService.deleteBanner(banner.id).subscribe({
+      next: () => this.toastService.success('Banner deleted.'),
+      error: () => this.toastService.error('Could not delete this banner — please try again.'),
     });
+    this.pendingDelete.set(null);
   }
 
   moveUp(banner: CarouselBanner): void {

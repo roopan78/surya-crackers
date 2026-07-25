@@ -1,0 +1,33 @@
+<section appScrollReveal>
+  <p class="section-eyebrow text-center">Support</p>
+  <h2 class="section-heading mt-1 text-center">Frequently Asked Questions</h2>
+
+  <div class="mx-auto mt-8 flex max-w-2xl flex-col gap-3">
+    @for (faq of faqs; track faq.question; let i = $index) {
+      <div class="glass-card-solid overflow-hidden">
+        <button
+          type="button"
+          class="flex w-full items-center justify-between gap-4 p-5 text-left"
+          (click)="toggle(i)"
+          [attr.aria-expanded]="openIndex() === i"
+        >
+          <span class="text-sm font-semibold text-brand-charcoal">{{ faq.question }}</span>
+          <lucide-icon
+            [img]="ChevronDownIcon"
+            class="h-4.5 w-4.5 shrink-0 text-brand-ink-muted transition-transform duration-300"
+            [class.rotate-180]="openIndex() === i"
+          />
+        </button>
+        <div
+          class="grid transition-all duration-300 ease-out"
+          [class.grid-rows-[1fr]]="openIndex() === i"
+          [class.grid-rows-[0fr]]="openIndex() !== i"
+        >
+          <div class="overflow-hidden">
+            <p class="px-5 pb-5 text-sm leading-relaxed text-brand-ink-secondary">{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</section>

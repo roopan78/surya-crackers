@@ -1,34 +1,32 @@
 <a
   [routerLink]="['/product', product().id]"
-  class="card-surface group relative flex flex-col overflow-hidden transition hover:border-amber-600/60 hover:shadow-amber-900/20"
+  class="glass-card-solid hover-lift group relative flex flex-col overflow-hidden"
 >
   @if (product().isFeatured) {
-    <span
-      class="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-950"
-    >
+    <span class="badge-gold absolute left-3 top-3 z-10">
       <lucide-icon [img]="SparklesIcon" class="h-3 w-3" />
       Featured
     </span>
   }
 
-  <div class="aspect-square w-full overflow-hidden bg-slate-800">
+  <div class="aspect-square w-full overflow-hidden bg-brand-mist">
     <img
       [src]="product().imageUrl"
       [alt]="product().name"
       loading="lazy"
-      class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
     />
   </div>
 
-  <div class="flex flex-1 flex-col gap-2 p-4">
-    <h3 class="line-clamp-2 text-sm font-semibold text-slate-100">{{ product().name }}</h3>
-    <p class="text-xs text-slate-400">{{ product().boxQuantity }}</p>
+  <div class="flex flex-1 flex-col gap-1.5 p-4">
+    <h3 class="line-clamp-2 text-sm font-semibold text-brand-charcoal">{{ product().name }}</h3>
+    <p class="text-xs text-brand-ink-muted">{{ product().boxQuantity }}</p>
 
-    <div class="mt-auto flex items-center justify-between pt-2">
-      <span class="text-lg font-bold text-amber-400">₹{{ product().price }}</span>
+    <div class="mt-auto flex items-center justify-between pt-3">
+      <span class="font-[family-name:--font-display] text-lg font-bold text-brand-charcoal">₹{{ product().price }}</span>
       <button
         type="button"
-        class="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-gradient-to-r hover:from-amber-500 hover:to-red-600 hover:text-white"
+        class="flex items-center gap-1.5 rounded-xl bg-brand-mist px-3 py-2 text-xs font-semibold text-brand-charcoal transition duration-200 hover:bg-brand-red hover:text-white"
         (click)="addToCart($event)"
       >
         <lucide-icon [img]="ShoppingCartIcon" class="h-3.5 w-3.5" />
