@@ -21,7 +21,7 @@ export function createApp() {
   );
   app.use(compression());
   app.use(morgan(env.isProduction ? 'combined' : 'dev'));
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '5mb' }));
   app.use(cookieParser());
 
   app.get('/health', (_req, res) => {
