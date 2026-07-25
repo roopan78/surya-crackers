@@ -17,7 +17,10 @@ const envSchema = z.object({
   OTP_EXPIRY_MINUTES: z.coerce.number().int().positive().default(5),
 
   // PhonePe — merchant KYC pending, keep disabled in production until approved
-  PHONEPE_ENABLED: z.coerce.boolean().default(false),
+  PHONEPE_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
   PHONEPE_ENV: z.enum(['SANDBOX', 'PRODUCTION']).default('SANDBOX'),
   PHONEPE_MERCHANT_ID: z.string().default(''),
   PHONEPE_SALT_KEY: z.string().default(''),
