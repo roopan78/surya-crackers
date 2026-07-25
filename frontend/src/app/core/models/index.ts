@@ -4,3 +4,4 @@ export * from './carousel-banner.model';
 export * from './footer-config.model';
 export * from './cart-item.model';
 export * from './order-details.model';
+export * from './api-response.model';

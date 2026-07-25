@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { ageGuard } from './core/guards/age.guard';
+import { adminAuthGuard } from './core/guards/admin-auth.guard';
 import { StorefrontLayout } from './shared/components/storefront-layout/storefront-layout';
 
 export const routes: Routes = [
@@ -7,6 +8,10 @@ export const routes: Routes = [
     path: 'age-verification',
     loadComponent: () =>
       import('./features/age-verification/age-verification').then((m) => m.AgeVerification),
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./features/admin/login/login').then((m) => m.AdminLogin),
   },
   {
     path: '',
@@ -30,6 +35,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
+    canActivate: [adminAuthGuard],
     loadComponent: () =>
       import('./features/admin/admin-shell/admin-shell').then((m) => m.AdminShell),
     children: [

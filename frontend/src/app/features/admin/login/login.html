@@ -1,0 +1,47 @@
+<div class="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4 py-10">
+  <div class="mb-6 text-center">
+    <p class="text-xs font-bold uppercase tracking-widest text-amber-500">Surya Crackers</p>
+    <h1 class="section-heading mt-1 text-white">Admin Workspace Login</h1>
+  </div>
+
+  <div class="card-surface w-full max-w-sm p-6">
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+      <div>
+        <label class="field-label" for="username">Username</label>
+        <input id="username" type="text" formControlName="username" class="input-field" placeholder="admin" autocomplete="username" />
+        @if (form.controls.username.invalid && form.controls.username.touched) {
+          <p class="field-error">Username is required.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="input-field"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <p class="field-error">Password is required.</p>
+        }
+      </div>
+
+      @if (loginError()) {
+        <p class="field-error flex items-center gap-1.5">
+          <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
+          {{ loginError() }}
+        </p>
+      }
+
+      <button type="submit" class="btn-primary mt-1" [disabled]="submitting()">
+        <lucide-icon [img]="LogInIcon" class="h-4 w-4" />
+        {{ submitting() ? 'Signing in…' : 'Sign In' }}
+      </button>
+    </form>
+  </div>
+
+  <a routerLink="/" class="mt-6 text-xs font-medium text-slate-500 hover:text-slate-300">Back to Storefront</a>
+</div>

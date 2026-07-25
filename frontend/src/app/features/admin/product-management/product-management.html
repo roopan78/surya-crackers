@@ -19,7 +19,15 @@
       <form [formGroup]="form" class="mt-4 flex flex-col gap-4" (ngSubmit)="submit()">
         <div>
           <label class="field-label" for="prod-name">Product Name</label>
-          <input id="prod-name" type="text" formControlName="name" class="input-field" placeholder="e.g. Golden Sparklers 10&quot;" />
+          <input
+            id="prod-name"
+            #nameInput
+            type="text"
+            formControlName="name"
+            class="input-field"
+            placeholder="e.g. Golden Sparklers 10&quot;"
+            (input)="onNameInput(nameInput.value)"
+          />
           @if (form.controls.name.invalid && form.controls.name.touched) {
             <p class="field-error">Product name is required.</p>
           }
@@ -27,15 +35,32 @@
 
         <div>
           <label class="field-label" for="prod-category">Category</label>
-          <select id="prod-category" formControlName="categorySlug" class="input-field">
+          <select id="prod-category" formControlName="categoryId" class="input-field">
             <option value="" disabled>Select a category</option>
-            @for (category of catalogService.categories(); track category.id) {
-              <option [value]="category.slug">{{ category.name }}</option>
+            @for (category of adminCatalogService.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
             }
           </select>
-          @if (form.controls.categorySlug.invalid && form.controls.categorySlug.touched) {
+          @if (form.controls.categoryId.invalid && form.controls.categoryId.touched) {
             <p class="field-error">Please select a category.</p>
           }
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label" for="prod-sku">SKU</label>
+            <input id="prod-sku" type="text" formControlName="sku" class="input-field" placeholder="SPARKLERS-7IN" />
+            @if (form.controls.sku.invalid && form.controls.sku.touched) {
+              <p class="field-error">Required.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label" for="prod-slug">Slug</label>
+            <input id="prod-slug" type="text" formControlName="slug" class="input-field" placeholder="golden-sparklers-10" />
+            @if (form.controls.slug.invalid && form.controls.slug.touched) {
+              <p class="field-error">Lowercase, hyphen-separated.</p>
+            }
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -53,6 +78,14 @@
               <p class="field-error">Required.</p>
             }
           </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="prod-stock">Stock Count</label>
+          <input id="prod-stock" type="number" min="0" formControlName="stockCount" class="input-field" />
+          @if (form.controls.stockCount.invalid && form.controls.stockCount.touched) {
+            <p class="field-error">Enter a valid stock count.</p>
+          }
         </div>
 
         <app-image-upload-field formControlName="imageUrl" label="Product Image" />
@@ -86,18 +119,23 @@
         </div>
 
         <app-toggle-switch formControlName="isFeatured" label="Featured Product" />
+        <app-toggle-switch formControlName="isActive" label="Visible on storefront" />
 
-        <button type="submit" class="btn-primary mt-1">
+        @if (errorMessage()) {
+          <p class="field-error">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn-primary mt-1" [disabled]="saving()">
           <lucide-icon [img]="editingId() ? PencilIcon : PlusIcon" class="h-4 w-4" />
-          {{ editingId() ? 'Save Changes' : 'Add Product' }}
+          {{ saving() ? 'Saving…' : editingId() ? 'Save Changes' : 'Add Product' }}
         </button>
       </form>
     </div>
 
     <!-- List -->
     <div class="flex flex-col gap-3 lg:col-span-2">
-      @for (product of catalogService.products(); track product.id) {
-        <div class="card-surface flex flex-wrap items-center gap-4 p-4">
+      @for (product of adminCatalogService.products(); track product.id) {
+        <div class="card-surface flex flex-wrap items-center gap-4 p-4" [class.opacity-50]="!product.isActive">
           <img [src]="product.imageUrl" [alt]="product.name" class="h-14 w-14 rounded-lg object-cover" />
           <div class="min-w-[10rem] flex-1">
             <p class="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
@@ -105,8 +143,11 @@
               @if (product.isFeatured) {
                 <lucide-icon [img]="StarIcon" class="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
               }
+              @if (!product.isActive) {
+                <span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Hidden</span>
+              }
             </p>
-            <p class="text-xs text-slate-500">{{ categoryName(product.categorySlug) }} · {{ product.boxQuantity }}</p>
+            <p class="text-xs text-slate-500">{{ categoryName(product.categorySlug) }} · {{ product.boxQuantity }} · Stock {{ product.stockCount }}</p>
           </div>
           <p class="text-sm font-bold text-amber-400">₹{{ product.price }}</p>
           <div class="flex gap-2">

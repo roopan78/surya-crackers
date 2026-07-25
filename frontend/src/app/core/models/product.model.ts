@@ -1,6 +1,8 @@
 export interface Product {
   id: string;
   name: string;
+  sku: string;
+  slug: string;
   categorySlug: string;
   price: number;
   /** Human readable packing description, e.g. "10 Pcs per box" */
@@ -10,4 +12,6 @@ export interface Product {
   videoUrl?: string;
   safetyInstructions: string;
   isFeatured: boolean;
+  isActive: boolean;
+  stockCount: number;
 }

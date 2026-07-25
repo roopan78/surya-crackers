@@ -53,9 +53,16 @@
         }
       </div>
 
-      <button type="submit" class="btn-primary mt-1 self-start">
+      @if (errorMessage()) {
+        <p class="field-error flex items-center gap-1.5">
+          <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
+          {{ errorMessage() }}
+        </p>
+      }
+
+      <button type="submit" class="btn-primary mt-1 self-start" [disabled]="saving()">
         <lucide-icon [img]="saved() ? CheckCircle2Icon : SaveIcon" class="h-4 w-4" />
-        {{ saved() ? 'Saved!' : 'Save Configuration' }}
+        {{ saving() ? 'Saving…' : saved() ? 'Saved!' : 'Save Configuration' }}
       </button>
     </form>
   </div>

@@ -4,4 +4,5 @@ export interface CarouselBanner {
   subtitle: string;
   imageUrl: string;
   sortOrder: number;
+  isActive: boolean;
 }

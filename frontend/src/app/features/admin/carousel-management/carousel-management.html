@@ -43,9 +43,15 @@
           <input id="banner-sort" type="number" min="1" formControlName="sortOrder" class="input-field" />
         </div>
 
-        <button type="submit" class="btn-primary mt-1">
+        <app-toggle-switch formControlName="isActive" label="Visible on storefront" />
+
+        @if (errorMessage()) {
+          <p class="field-error">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn-primary mt-1" [disabled]="saving()">
           <lucide-icon [img]="editingId() ? PencilIcon : PlusIcon" class="h-4 w-4" />
-          {{ editingId() ? 'Save Changes' : 'Add Banner' }}
+          {{ saving() ? 'Saving…' : editingId() ? 'Save Changes' : 'Add Banner' }}
         </button>
       </form>
     </div>
@@ -53,7 +59,7 @@
     <!-- List -->
     <div class="flex flex-col gap-3 lg:col-span-2">
       @for (banner of sortedBanners(); track banner.id; let first = $first; let last = $last) {
-        <div class="card-surface flex flex-wrap items-center gap-4 p-4">
+        <div class="card-surface flex flex-wrap items-center gap-4 p-4" [class.opacity-50]="!banner.isActive">
           <img [src]="banner.imageUrl" [alt]="banner.title" class="h-14 w-24 rounded-lg object-cover" />
           <div class="min-w-[10rem] flex-1">
             <p class="text-sm font-semibold text-slate-100">{{ banner.title }}</p>

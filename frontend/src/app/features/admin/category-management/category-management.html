@@ -41,25 +41,47 @@
           }
         </div>
 
+        <div>
+          <label class="field-label" for="cat-description">Description (optional)</label>
+          <textarea
+            id="cat-description"
+            rows="2"
+            formControlName="description"
+            class="input-field resize-none"
+            placeholder="Short description shown to customers"
+          ></textarea>
+        </div>
+
         <app-image-upload-field formControlName="image" label="Category Image" />
         @if (form.controls.image.invalid && form.controls.image.touched) {
           <p class="field-error -mt-2">Please choose or paste a category image.</p>
         }
 
-        <button type="submit" class="btn-primary mt-1">
+        <app-toggle-switch formControlName="isActive" label="Visible on storefront" />
+
+        @if (errorMessage()) {
+          <p class="field-error">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn-primary mt-1" [disabled]="saving()">
           <lucide-icon [img]="editingId() ? PencilIcon : PlusIcon" class="h-4 w-4" />
-          {{ editingId() ? 'Save Changes' : 'Add Category' }}
+          {{ saving() ? 'Saving…' : editingId() ? 'Save Changes' : 'Add Category' }}
         </button>
       </form>
     </div>
 
     <!-- List -->
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-3">
-      @for (category of catalogService.categories(); track category.id) {
-        <div class="card-surface flex flex-col overflow-hidden">
+      @for (category of adminCatalogService.categories(); track category.id) {
+        <div class="card-surface flex flex-col overflow-hidden" [class.opacity-50]="!category.isActive">
           <img [src]="category.image" [alt]="category.name" class="h-28 w-full object-cover" />
           <div class="flex flex-1 flex-col gap-1 p-3">
-            <p class="text-sm font-semibold text-slate-100">{{ category.name }}</p>
+            <p class="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
+              {{ category.name }}
+              @if (!category.isActive) {
+                <span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Hidden</span>
+              }
+            </p>
             <p class="text-xs text-slate-500">/{{ category.slug }}</p>
             <div class="mt-auto flex gap-2 pt-2">
               <button type="button" class="btn-secondary flex-1 !px-2 !py-1.5 text-xs" (click)="startEdit(category)">

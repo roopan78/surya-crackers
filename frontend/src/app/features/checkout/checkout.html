@@ -93,9 +93,16 @@
             }
           </div>
 
-          <button type="submit" class="btn-primary mt-2">
+          @if (submitError()) {
+            <p class="field-error flex items-center gap-1.5">
+              <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
+              {{ submitError() }}
+            </p>
+          }
+
+          <button type="submit" class="btn-primary mt-2" [disabled]="submitting()">
             <lucide-icon [img]="MessageCircleIcon" class="h-4 w-4" />
-            Confirm Order via WhatsApp
+            {{ submitting() ? 'Placing Order…' : 'Confirm Order via WhatsApp' }}
           </button>
           <p class="text-center text-xs text-slate-500">
             You'll be redirected to WhatsApp to send your order directly to us.

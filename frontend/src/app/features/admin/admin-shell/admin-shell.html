@@ -4,6 +4,9 @@
     <div class="border-b border-slate-800 px-5 py-5">
       <p class="text-xs font-bold uppercase tracking-widest text-amber-500">Surya Crackers</p>
       <p class="text-sm font-semibold text-slate-200">Admin Workspace</p>
+      @if (username()) {
+        <p class="mt-1 text-xs text-slate-500">Signed in as {{ username() }}</p>
+      }
     </div>
 
     <nav class="flex flex-1 flex-col gap-1 p-3">
@@ -28,6 +31,14 @@
         <lucide-icon [img]="ExternalLinkIcon" class="h-4 w-4" />
         Back to Storefront
       </a>
+      <button
+        type="button"
+        (click)="logout()"
+        class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400/80 transition hover:bg-red-950/40 hover:text-red-400"
+      >
+        <lucide-icon [img]="LogOutIcon" class="h-4 w-4" />
+        Log Out
+      </button>
     </div>
   </aside>
 
