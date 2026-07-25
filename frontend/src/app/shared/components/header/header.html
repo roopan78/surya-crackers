@@ -30,9 +30,13 @@
         <lucide-icon [img]="searchOpen() ? XIcon : SearchIcon" class="h-4.5 w-4.5" />
       </button>
 
-      <button type="button" class="btn-ghost hidden !p-2.5 text-emerald-600 hover:bg-emerald-50 sm:inline-flex" (click)="openWhatsApp()" aria-label="Chat on WhatsApp">
-        <lucide-icon [img]="MessageCircleIcon" class="h-4.5 w-4.5" />
-      </button>
+      <a
+        [routerLink]="customerAuthService.isAuthenticated() ? '/account' : '/login'"
+        class="btn-ghost !p-2.5"
+        [attr.aria-label]="customerAuthService.isAuthenticated() ? 'My Account' : 'Sign In'"
+      >
+        <lucide-icon [img]="UserIcon" class="h-4.5 w-4.5" />
+      </a>
 
       <a routerLink="/checkout" class="btn-secondary relative !px-3 !py-2">
         <lucide-icon [img]="ShoppingCartIcon" class="h-4 w-4" />

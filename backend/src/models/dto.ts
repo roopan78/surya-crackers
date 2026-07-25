@@ -1,4 +1,4 @@
-import { Category, CarouselBanner, FooterConfig, OrderLedger, Product } from '@prisma/client';
+import { Category, CarouselBanner, FooterConfig, OrderLedger, Product, User } from '@prisma/client';
 
 /**
  * Prisma's Decimal fields (de)serialize as strings/objects over JSON by default.
@@ -67,17 +67,37 @@ export function toFooterDTO(footer: FooterConfig) {
   };
 }
 
-export function toOrderDTO(order: OrderLedger) {
+export function toUserDTO(user: User) {
+  return {
+    id: user.id,
+    mobile: user.mobile,
+    name: user.name,
+    role: user.role,
+    isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+export type OrderWithCustomer = OrderLedger & { customer?: User | null };
+
+export function toOrderDTO(order: OrderWithCustomer) {
   return {
     id: order.id,
     orderNumber: order.orderNumber,
-    customerName: order.customerName,
-    deliveryAddress: order.deliveryAddress,
-    phone: order.phone,
-    preferredDate: order.preferredDate,
+    customerType: order.customerId ? ('REGISTERED' as const) : ('GUEST' as const),
+    customerId: order.customerId,
+    customerName: order.customer?.name ?? order.guestName,
+    customerMobile: order.customer?.mobile ?? order.guestMobile,
+    pickupDate: order.pickupDate,
+    pickupTime: order.pickupTime,
+    notes: order.notes,
     items: order.items,
     estimatedTotal: Number(order.estimatedTotal),
     status: order.status,
+    paymentStatus: order.paymentStatus,
+    paymentProvider: order.paymentProvider,
+    paymentReference: order.paymentReference,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };

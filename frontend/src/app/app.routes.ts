@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { ageGuard } from './core/guards/age.guard';
 import { adminAuthGuard } from './core/guards/admin-auth.guard';
+import { customerAuthGuard } from './core/guards/customer-auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 import { StorefrontLayout } from './shared/components/storefront-layout/storefront-layout';
 
 export const routes: Routes = [
@@ -30,6 +32,25 @@ export const routes: Routes = [
       {
         path: 'checkout',
         loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout),
+      },
+      {
+        path: 'order-confirmation/:orderNumber',
+        loadComponent: () =>
+          import('./features/order-confirmation/order-confirmation').then((m) => m.OrderConfirmation),
+      },
+      {
+        path: 'login',
+        loadComponent: () => import('./features/customer-login/customer-login').then((m) => m.CustomerLogin),
+      },
+      {
+        path: 'account',
+        canActivate: [customerAuthGuard],
+        loadComponent: () => import('./features/account/profile/profile').then((m) => m.Profile),
+      },
+      {
+        path: 'account/orders',
+        canActivate: [customerAuthGuard],
+        loadComponent: () => import('./features/account/my-orders/my-orders').then((m) => m.MyOrders),
       },
       {
         path: 'refund-policy',
@@ -93,6 +114,12 @@ export const routes: Routes = [
           import('./features/admin/footer-configuration/footer-configuration').then(
             (m) => m.FooterConfiguration,
           ),
+      },
+      {
+        path: 'users',
+        canActivate: [roleGuard('SUPER_ADMIN')],
+        loadComponent: () =>
+          import('./features/admin/user-management/user-management').then((m) => m.UserManagement),
       },
     ],
   },

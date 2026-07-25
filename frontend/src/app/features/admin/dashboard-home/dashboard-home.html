@@ -61,8 +61,8 @@
                 <td class="px-6 py-3 text-brand-ink-secondary">{{ order.customerName }}</td>
                 <td class="px-6 py-3 font-semibold text-brand-charcoal">₹{{ order.estimatedTotal }}</td>
                 <td class="px-6 py-3">
-                  <span class="badge-status" [style.background-color]="order.status === 'PENDING_WHATSAPP' ? '#fef3d6' : order.status === 'DISPATCHED' ? '#fde4da' : order.status === 'DELIVERED' ? '#dcf5dc' : '#fbdcdc'">
-                    {{ order.status === 'PENDING_WHATSAPP' ? 'Pending' : order.status | titlecase }}
+                  <span class="badge-status" [style.background-color]="order.status === 'PENDING' ? '#fef3d6' : order.status === 'READY_FOR_PICKUP' ? '#fde4da' : order.status === 'COMPLETED' ? '#dcf5dc' : '#fbdcdc'">
+                    {{ order.status | titlecase }}
                   </span>
                 </td>
               </tr>

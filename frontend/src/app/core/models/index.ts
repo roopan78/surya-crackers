@@ -5,3 +5,6 @@ export * from './footer-config.model';
 export * from './cart-item.model';
 export * from './order-details.model';
 export * from './api-response.model';
+export * from './user.model';
+export * from './payment.model';
+export * from './order.model';

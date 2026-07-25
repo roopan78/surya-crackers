@@ -14,7 +14,8 @@ import {
   CircleX,
 } from 'lucide-angular';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
-import { AdminOrderService, OrderStatus } from '../../../core/services/admin-order.service';
+import { AdminOrderService } from '../../../core/services/admin-order.service';
+import { OrderStatus } from '../../../core/models';
 
 interface StatusRow {
   status: OrderStatus;
@@ -26,9 +27,9 @@ interface StatusRow {
 }
 
 const STATUS_META: Record<OrderStatus, { label: string; color: string; icon: typeof Hourglass }> = {
-  PENDING_WHATSAPP: { label: 'Pending', color: '#fab219', icon: Hourglass },
-  DISPATCHED: { label: 'Dispatched', color: '#ec835a', icon: Truck },
-  DELIVERED: { label: 'Delivered', color: '#0ca30c', icon: CircleCheck },
+  PENDING: { label: 'Pending', color: '#fab219', icon: Hourglass },
+  READY_FOR_PICKUP: { label: 'Ready for Pickup', color: '#ec835a', icon: Truck },
+  COMPLETED: { label: 'Completed', color: '#0ca30c', icon: CircleCheck },
   CANCELLED: { label: 'Cancelled', color: '#d03b3b', icon: CircleX },
 };
 
@@ -67,9 +68,9 @@ export class DashboardHome implements OnInit {
   readonly statusBreakdown = computed<StatusRow[]>(() => {
     const orders = this.orderService.orders();
     const counts: Record<OrderStatus, number> = {
-      PENDING_WHATSAPP: 0,
-      DISPATCHED: 0,
-      DELIVERED: 0,
+      PENDING: 0,
+      READY_FOR_PICKUP: 0,
+      COMPLETED: 0,
       CANCELLED: 0,
     };
     for (const order of orders) {

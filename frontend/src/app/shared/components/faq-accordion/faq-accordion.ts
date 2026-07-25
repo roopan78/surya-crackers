@@ -22,7 +22,7 @@ export class FaqAccordion {
     {
       question: 'How do I place an order?',
       answer:
-        'Browse the catalog, add items to your cart, and fill in your delivery details at checkout. Confirming the order sends it straight to us over WhatsApp along with a clean, itemized invoice.',
+        'Browse the catalog, add items to your cart, and fill in your pickup details at checkout — no account required. Choose Cash on Pickup (or PhonePe, once available) and you\'re done.',
     },
     {
       question: 'Is there a minimum age to purchase?',
@@ -30,9 +30,9 @@ export class FaqAccordion {
         'Yes — firecrackers are a regulated, age-restricted product. You must confirm you are 18 or older before browsing the store, and all purchases are intended for adult use and supervision only.',
     },
     {
-      question: 'How and when will my order be delivered?',
+      question: 'Do you deliver, or is it pickup only?',
       answer:
-        'We confirm your target delivery date over WhatsApp after you place your order, and pack every item securely to prevent damage in transit. Delivery windows are busiest close to festival dates, so ordering early is recommended.',
+        'This is pickup only — there is no home delivery. Choose a pickup date and time at checkout and collect your order in-store; we pack every item securely so it\'s ready the moment you arrive.',
     },
     {
       question: 'Are your products licensed and safe?',
@@ -40,9 +40,9 @@ export class FaqAccordion {
         'All products are sourced from licensed manufacturers and come with printed safety instructions. Our own license number is listed in the footer of this site for verification.',
     },
     {
-      question: 'Can I modify or cancel an order after confirming?',
+      question: 'Can I modify or cancel an order after placing it?',
       answer:
-        'Since orders are confirmed directly over WhatsApp, just message us there as soon as possible with your order details and we will do our best to accommodate changes before dispatch.',
+        'Message us on WhatsApp with your order number as soon as possible and we will do our best to accommodate changes before your order is packed for pickup.',
     },
   ];
 

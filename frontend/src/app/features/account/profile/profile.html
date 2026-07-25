@@ -1,0 +1,30 @@
+<div class="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-12">
+  <h1 class="section-heading">My Profile</h1>
+
+  <div class="glass-card-solid mt-6 p-6">
+    <div class="mb-5">
+      <p class="field-label">Mobile Number</p>
+      <p class="text-sm font-semibold text-brand-charcoal">{{ customerAuthService.currentUser()?.mobile }}</p>
+    </div>
+
+    <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
+      <div>
+        <label class="field-label" for="name">Full Name</label>
+        <input id="name" type="text" formControlName="name" class="input-field" placeholder="Your name" />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <p class="field-error">Please enter your name.</p>
+        }
+      </div>
+
+      <button type="submit" class="btn-primary mt-1 self-start" [disabled]="saving()">
+        <lucide-icon [img]="saved() ? CheckCircle2Icon : SaveIcon" class="h-4 w-4" />
+        {{ saving() ? 'Saving…' : saved() ? 'Saved!' : 'Save Profile' }}
+      </button>
+    </form>
+  </div>
+
+  <button type="button" class="btn-secondary mt-4 !text-brand-red" (click)="logout()">
+    <lucide-icon [img]="LogOutIcon" class="h-4 w-4" />
+    Log Out
+  </button>
+</div>

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   LucideAngularModule,
@@ -8,6 +8,7 @@ import {
   GalleryHorizontal,
   Settings,
   ClipboardList,
+  Users,
   ExternalLink,
   LogOut,
 } from 'lucide-angular';
@@ -32,16 +33,22 @@ export class AdminShell {
   readonly ExternalLinkIcon = ExternalLink;
   readonly LogOutIcon = LogOut;
 
-  readonly username = this.authService.username;
+  readonly currentUser = this.authService.currentUser;
 
-  readonly navItems: AdminNavItem[] = [
-    { label: 'Dashboard', path: '/admin', icon: LayoutGrid },
-    { label: 'Orders', path: '/admin/orders', icon: ClipboardList },
-    { label: 'Categories', path: '/admin/categories', icon: Tags },
-    { label: 'Products', path: '/admin/products', icon: PackagePlus },
-    { label: 'Carousel', path: '/admin/carousel', icon: GalleryHorizontal },
-    { label: 'Footer Config', path: '/admin/footer', icon: Settings },
-  ];
+  readonly navItems = computed<AdminNavItem[]>(() => {
+    const items: AdminNavItem[] = [
+      { label: 'Dashboard', path: '/admin', icon: LayoutGrid },
+      { label: 'Orders', path: '/admin/orders', icon: ClipboardList },
+      { label: 'Categories', path: '/admin/categories', icon: Tags },
+      { label: 'Products', path: '/admin/products', icon: PackagePlus },
+      { label: 'Carousel', path: '/admin/carousel', icon: GalleryHorizontal },
+      { label: 'Footer Config', path: '/admin/footer', icon: Settings },
+    ];
+    if (this.currentUser()?.role === 'SUPER_ADMIN') {
+      items.push({ label: 'Users & Roles', path: '/admin/users', icon: Users });
+    }
+    return items;
+  });
 
   logout(): void {
     this.authService.logout();

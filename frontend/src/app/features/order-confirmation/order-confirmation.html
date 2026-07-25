@@ -1,0 +1,42 @@
+<div class="mx-auto flex max-w-xl flex-col items-center px-4 py-14 text-center sm:py-20">
+  <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+    <lucide-icon [img]="CircleCheckIcon" class="h-8 w-8" />
+  </div>
+
+  <p class="section-eyebrow mt-6">Order Confirmed</p>
+  <h1 class="section-heading mt-1">Thank you!</h1>
+  <p class="mt-2 text-sm text-brand-ink-secondary">Your order number is</p>
+  <p class="font-[family-name:--font-display] text-2xl font-extrabold tracking-tight text-brand-charcoal">{{ orderNumber }}</p>
+
+  <div class="glass-card-solid mt-8 w-full p-6 text-left">
+    <div class="flex items-start gap-3">
+      <lucide-icon [img]="StoreIcon" class="mt-0.5 h-5 w-5 shrink-0 text-brand-red" />
+      <div>
+        <p class="text-sm font-semibold text-brand-charcoal">In-Store Pickup</p>
+        <p class="mt-0.5 text-sm text-brand-ink-secondary">
+          @if (pickupDate || pickupTime) {
+            {{ pickupDate ? (pickupDate | date: 'mediumDate') : 'Date to be confirmed' }}
+            @if (pickupTime) { · {{ pickupTime }} }
+          } @else {
+            We'll confirm your pickup date and time shortly.
+          }
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-start gap-3 border-t border-black/5 pt-4">
+      <lucide-icon [img]="IndianRupeeIcon" class="mt-0.5 h-5 w-5 shrink-0 text-brand-red" />
+      <div>
+        <p class="text-sm font-semibold text-brand-charcoal">
+          @if (estimatedTotal !== null) { Total: ₹{{ estimatedTotal }} }
+        </p>
+        <p class="mt-0.5 text-sm text-brand-ink-secondary">{{ paymentMessage }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 flex gap-3">
+    <a routerLink="/" class="btn-primary">Continue Shopping</a>
+    <a routerLink="/account/orders" class="btn-secondary">View My Orders</a>
+  </div>
+</div>

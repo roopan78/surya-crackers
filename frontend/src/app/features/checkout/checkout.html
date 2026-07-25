@@ -43,54 +43,79 @@
           </span>
           <span class="font-[family-name:--font-display] text-xl font-extrabold text-brand-charcoal">Total: ₹{{ cartService.grandTotal() }}</span>
         </div>
+
+        <!-- Payment Method -->
+        <div class="glass-card-solid p-5">
+          <h2 class="text-lg font-bold text-brand-charcoal">Payment Method</h2>
+          <div class="mt-4 flex flex-col gap-3">
+            @for (method of paymentMethods(); track method.provider) {
+              <button
+                type="button"
+                class="glass-card-solid flex items-start gap-3 p-4 text-left transition"
+                [class.!border-brand-red]="selectedProvider() === method.provider"
+                [class.opacity-50]="!method.available"
+                [class.cursor-not-allowed]="!method.available"
+                (click)="selectProvider(method)"
+              >
+                <span
+                  class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                  [class.border-brand-red]="selectedProvider() === method.provider"
+                  [class.border-black/15]="selectedProvider() !== method.provider"
+                >
+                  @if (selectedProvider() === method.provider) {
+                    <span class="h-2.5 w-2.5 rounded-full bg-brand-red"></span>
+                  }
+                </span>
+                <span class="flex-1">
+                  <span class="block text-sm font-semibold text-brand-charcoal">{{ method.label }}</span>
+                  @if (method.message) {
+                    <span class="mt-0.5 block text-xs text-brand-ink-muted">{{ method.message }}</span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        </div>
       </div>
 
-      <!-- Delivery Form -->
+      <!-- Pickup Details -->
       <div class="glass-card-solid h-fit p-5">
-        <h2 class="text-lg font-bold text-brand-charcoal">Delivery Details</h2>
-        <form [formGroup]="deliveryForm" class="mt-4 flex flex-col gap-4" (ngSubmit)="confirmOrderViaWhatsApp()">
+        <h2 class="flex items-center gap-2 text-lg font-bold text-brand-charcoal">
+          <lucide-icon [img]="StoreIcon" class="h-5 w-5 text-brand-red" />
+          Pickup Details
+        </h2>
+        <p class="mt-1 text-xs text-brand-ink-muted">This order is for in-store pickup — there is no home delivery.</p>
+
+        <form [formGroup]="pickupForm" class="mt-4 flex flex-col gap-4" (ngSubmit)="placeOrder()">
           <div>
             <label class="field-label" for="name">Full Name</label>
             <input id="name" type="text" formControlName="name" class="input-field" placeholder="Your name" />
-            @if (deliveryForm.controls.name.invalid && deliveryForm.controls.name.touched) {
+            @if (pickupForm.controls.name.invalid && pickupForm.controls.name.touched) {
               <p class="field-error">Please enter a valid name.</p>
             }
           </div>
 
           <div>
-            <label class="field-label" for="address">Full Address</label>
-            <textarea
-              id="address"
-              rows="3"
-              formControlName="address"
-              class="input-field resize-none"
-              placeholder="House no, street, city, pincode"
-            ></textarea>
-            @if (deliveryForm.controls.address.invalid && deliveryForm.controls.address.touched) {
-              <p class="field-error">Please enter your complete delivery address.</p>
+            <label class="field-label" for="mobile">Mobile Number</label>
+            <input id="mobile" type="tel" formControlName="mobile" class="input-field" placeholder="98765 43210" />
+            @if (pickupForm.controls.mobile.invalid && pickupForm.controls.mobile.touched) {
+              <p class="field-error">Enter a valid 10-digit mobile number.</p>
             }
           </div>
 
           <div>
-            <label class="field-label" for="phone">Phone Number</label>
-            <input id="phone" type="tel" formControlName="phone" class="input-field" placeholder="98765 43210" />
-            @if (deliveryForm.controls.phone.invalid && deliveryForm.controls.phone.touched) {
-              <p class="field-error">Please enter a valid phone number.</p>
-            }
+            <label class="field-label" for="pickupDate">Pickup Date (optional)</label>
+            <input id="pickupDate" type="date" [min]="minDate" formControlName="pickupDate" class="input-field" />
           </div>
 
           <div>
-            <label class="field-label" for="targetDate">Target Delivery Date</label>
-            <input
-              id="targetDate"
-              type="date"
-              [min]="minDate"
-              formControlName="targetDate"
-              class="input-field"
-            />
-            @if (deliveryForm.controls.targetDate.invalid && deliveryForm.controls.targetDate.touched) {
-              <p class="field-error">Please select a target date.</p>
-            }
+            <label class="field-label" for="pickupTime">Pickup Time (optional)</label>
+            <input id="pickupTime" type="text" formControlName="pickupTime" class="input-field" placeholder="e.g. 5:00 PM" />
+          </div>
+
+          <div>
+            <label class="field-label" for="notes">Order Notes (optional)</label>
+            <textarea id="notes" rows="2" formControlName="notes" class="input-field resize-none" placeholder="Anything we should know?"></textarea>
           </div>
 
           @if (submitError()) {
@@ -101,12 +126,8 @@
           }
 
           <button type="submit" class="btn-primary mt-2" [disabled]="submitting()">
-            <lucide-icon [img]="MessageCircleIcon" class="h-4 w-4" />
-            {{ submitting() ? 'Placing Order…' : 'Confirm Order via WhatsApp' }}
+            {{ submitting() ? 'Placing Order…' : 'Place Order' }}
           </button>
-          <p class="text-center text-xs text-brand-ink-muted">
-            You'll be redirected to WhatsApp to send your order directly to us.
-          </p>
         </form>
       </div>
     </div>

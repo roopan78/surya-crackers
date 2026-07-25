@@ -2,14 +2,15 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package } from 'lucide-angular';
-import { AdminOrderService, OrderStatus } from '../../../core/services/admin-order.service';
+import { AdminOrderService } from '../../../core/services/admin-order.service';
+import { OrderStatus } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
 
 const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
   { value: '', label: 'All Statuses' },
-  { value: 'PENDING_WHATSAPP', label: 'Pending' },
-  { value: 'DISPATCHED', label: 'Dispatched' },
-  { value: 'DELIVERED', label: 'Delivered' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'READY_FOR_PICKUP', label: 'Ready for Pickup' },
+  { value: 'COMPLETED', label: 'Completed' },
   { value: 'CANCELLED', label: 'Cancelled' },
 ];
 
@@ -41,7 +42,7 @@ export class OrderManagement implements OnInit {
     const orders = this.orderService.orders();
     if (!query) return orders;
     return orders.filter(
-      (o) => o.customerName.toLowerCase().includes(query) || o.orderNumber.toLowerCase().includes(query),
+      (o) => (o.customerName ?? '').toLowerCase().includes(query) || o.orderNumber.toLowerCase().includes(query),
     );
   });
 
@@ -76,6 +77,16 @@ export class OrderManagement implements OnInit {
         this.loadOrders();
       },
       error: () => this.toastService.error('Could not update order status — please try again.'),
+    });
+  }
+
+  confirmPaymentManually(id: string): void {
+    this.orderService.confirmPaymentManually(id).subscribe({
+      next: () => {
+        this.toastService.success('Payment marked as received.');
+        this.loadOrders();
+      },
+      error: () => this.toastService.error('Could not update payment status — please try again.'),
     });
   }
 }

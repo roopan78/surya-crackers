@@ -1,27 +1,22 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import { prisma } from '../config/prisma';
 import { env } from '../config/env';
+import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
-import { signAdminToken } from '../utils/jwt';
-import { LoginInput } from '../validators/auth.validator';
+import { toUserDTO } from '../models/dto';
+import { sendOtp as sendOtpForMobile, verifyOtp as verifyOtpForMobile } from '../services/otp.service';
+import { SendOtpInput, UpdateProfileInput, VerifyOtpInput } from '../validators/auth.validator';
 
-export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { username, password } = req.body as LoginInput;
+export const sendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { mobile } = req.body as SendOtpInput;
+  const result = await sendOtpForMobile(mobile);
+  return sendSuccess(res, { message: 'OTP sent.', ...result });
+});
 
-  const admin = await prisma.admin.findUnique({ where: { username } });
-  if (!admin) {
-    throw ApiError.unauthorized('Invalid username or password');
-  }
-
-  const passwordMatches = await bcrypt.compare(password, admin.passwordHash);
-  if (!passwordMatches) {
-    throw ApiError.unauthorized('Invalid username or password');
-  }
-
-  const token = signAdminToken({ sub: admin.id, username: admin.username });
+export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { mobile, code } = req.body as VerifyOtpInput;
+  const { token, user } = await verifyOtpForMobile(mobile, code);
 
   res.cookie('token', token, {
     httpOnly: true,
@@ -30,10 +25,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     maxAge: 24 * 60 * 60 * 1000,
   });
 
-  return sendSuccess(res, {
-    token,
-    admin: { id: admin.id, username: admin.username },
-  });
+  return sendSuccess(res, { token, user });
 });
 
 export const logout = asyncHandler(async (_req: Request, res: Response) => {
@@ -42,5 +34,15 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 export const me = asyncHandler(async (req: Request, res: Response) => {
-  return sendSuccess(res, { admin: req.admin });
+  return sendSuccess(res, { user: req.user });
+});
+
+// PATCH /api/auth/me — a user updating their own profile (name only; mobile/role are not self-editable)
+export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw ApiError.unauthorized('Authentication required');
+  }
+  const { name } = req.body as UpdateProfileInput;
+  const user = await prisma.user.update({ where: { id: req.user.sub }, data: { name } });
+  return sendSuccess(res, toUserDTO(user));
 });

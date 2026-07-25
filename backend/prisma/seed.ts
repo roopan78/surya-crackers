@@ -1,19 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminUsername = process.env.ADMIN_SEED_USERNAME ?? 'admin';
-  const adminPassword = process.env.ADMIN_SEED_PASSWORD ?? 'ChangeMe123!';
-
-  const passwordHash = await bcrypt.hash(adminPassword, 12);
-  await prisma.admin.upsert({
-    where: { username: adminUsername },
-    update: {},
-    create: { username: adminUsername, passwordHash },
-  });
-  console.log(`Admin account ready: ${adminUsername}`);
+  // No admin account is seeded here anymore — the SUPER_ADMIN_MOBILE account
+  // is created automatically the first time that number completes OTP login
+  // (see src/services/otp.service.ts).
 
   const categories = [
     { name: 'Sparklers', slug: 'sparklers', description: 'Hand-held sparkler varieties for all ages.', color: 'd97706' },

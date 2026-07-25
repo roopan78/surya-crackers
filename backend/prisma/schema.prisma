@@ -7,21 +7,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
+}
+
 enum OrderStatus {
-  PENDING_WHATSAPP
-  DISPATCHED
-  DELIVERED
+  PENDING
+  READY_FOR_PICKUP
+  COMPLETED
   CANCELLED
 }
 
-model Admin {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
 
-  @@map("admins")
+enum PaymentProviderType {
+  PHONEPE
+  CASH_ON_PICKUP
+}
+
+enum OtpPurpose {
+  LOGIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  mobile    String   @unique
+  name      String?
+  role      Role     @default(CUSTOMER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders OrderLedger[]
+  otps   Otp[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model Otp {
+  id         String     @id @default(cuid())
+  mobile     String
+  codeHash   String
+  purpose    OtpPurpose @default(LOGIN)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int        @default(0)
+  userId     String?
+  createdAt  DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([mobile, purpose])
+  @@map("otps")
 }
 
 model Category {
@@ -80,32 +125,41 @@ model CarouselBanner {
 
 // Singleton row: application code always reads/writes the record where id = 1.
 model FooterConfig {
-  id                Int      @id @default(1)
-  shopName          String
-  address           String
-  licenseNumber     String
-  phone             String
-  whatsappNumber    String
-  safetyDisclaimer  String
-  updatedAt         DateTime @updatedAt
+  id               Int      @id @default(1)
+  shopName         String
+  address          String
+  licenseNumber    String
+  phone            String
+  whatsappNumber   String
+  safetyDisclaimer String
+  updatedAt        DateTime @updatedAt
 
   @@map("footer_config")
 }
 
 model OrderLedger {
-  id              String      @id @default(cuid())
-  orderNumber     String      @unique
-  customerName    String
-  deliveryAddress String
-  phone           String
-  preferredDate   DateTime
-  items           Json
-  estimatedTotal  Decimal     @db.Decimal(10, 2)
-  status          OrderStatus @default(PENDING_WHATSAPP)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id               String              @id @default(cuid())
+  orderNumber      String              @unique
+  customerId       String?
+  guestName        String?
+  guestMobile      String?
+  pickupDate       DateTime?
+  pickupTime       String?
+  notes            String?
+  items            Json
+  estimatedTotal   Decimal             @db.Decimal(10, 2)
+  status           OrderStatus         @default(PENDING)
+  paymentStatus    PaymentStatus       @default(PENDING)
+  paymentProvider  PaymentProviderType
+  paymentReference String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  customer User? @relation(fields: [customerId], references: [id])
 
   @@index([status])
+  @@index([paymentStatus])
   @@index([createdAt])
+  @@index([customerId])
   @@map("order_ledger")
 }

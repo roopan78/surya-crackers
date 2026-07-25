@@ -26,7 +26,7 @@ export class Testimonials {
     {
       name: 'Karthik R.',
       location: 'Chennai',
-      quote: 'The gift box quality was outstanding and everything arrived well before Diwali. Ordering over WhatsApp made it so simple.',
+      quote: 'The gift box quality was outstanding and pickup was quick and hassle-free right before Diwali.',
       rating: 5,
     },
     {

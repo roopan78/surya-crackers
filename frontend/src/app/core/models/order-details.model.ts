@@ -1,6 +1,7 @@
 export interface OrderDetails {
   name: string;
-  address: string;
-  phone: string;
-  targetDate: string;
+  mobile: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  notes?: string;
 }
