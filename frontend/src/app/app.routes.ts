@@ -43,6 +43,11 @@ export const routes: Routes = [
         path: 'privacy-policy',
         loadComponent: () => import('./features/legal/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
       },
+      {
+        path: 'terms-and-conditions',
+        loadComponent: () =>
+          import('./features/legal/terms-and-conditions/terms-and-conditions').then((m) => m.TermsAndConditions),
+      },
     ],
   },
   {

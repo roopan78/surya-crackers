@@ -47,6 +47,7 @@
           <li><a routerLink="/refund-policy" class="transition hover:text-brand-red">Refund Policy</a></li>
           <li><a routerLink="/return-policy" class="transition hover:text-brand-red">Return Policy</a></li>
           <li><a routerLink="/privacy-policy" class="transition hover:text-brand-red">Privacy Policy</a></li>
+          <li><a routerLink="/terms-and-conditions" class="transition hover:text-brand-red">Terms &amp; Conditions</a></li>
           <li><a routerLink="/admin/login" class="transition hover:text-brand-red">Admin Login</a></li>
         </ul>
       </div>
@@ -61,10 +62,11 @@
 
     <div class="mt-10 flex flex-col items-center gap-2 border-t border-black/5 pt-6 text-center text-xs text-brand-ink-muted sm:flex-row sm:justify-between">
       <span>© {{ currentYear }} {{ catalogService.footerConfig().shopName }}. All rights reserved.</span>
-      <span class="flex gap-4">
+      <span class="flex flex-wrap justify-center gap-4">
         <a routerLink="/refund-policy" class="hover:text-brand-red">Refund Policy</a>
         <a routerLink="/return-policy" class="hover:text-brand-red">Return Policy</a>
         <a routerLink="/privacy-policy" class="hover:text-brand-red">Privacy Policy</a>
+        <a routerLink="/terms-and-conditions" class="hover:text-brand-red">Terms &amp; Conditions</a>
       </span>
     </div>
   </div>
