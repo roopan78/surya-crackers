@@ -23,6 +23,11 @@
 
 html {
   scroll-behavior: smooth;
+  /* This site is light-only — opt out of the browser's "force dark mode
+     for web content" setting, which otherwise auto-inverts plain
+     background-color regions (leaving images alone) regardless of what
+     the CSS actually declares. */
+  color-scheme: light only;
 }
 
 html,
