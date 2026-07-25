@@ -17,6 +17,9 @@ const ALL_SLUG = 'all';
 export class Home {
   private readonly catalogService = inject(CatalogService);
 
+  readonly loading = this.catalogService.loading;
+  readonly loadError = this.catalogService.loadError;
+
   readonly banners = computed(() =>
     [...this.catalogService.banners()].sort((a, b) => a.sortOrder - b.sortOrder),
   );
@@ -43,5 +46,9 @@ export class Home {
 
   selectCategory(category: Category | null): void {
     this.selectedSlug.set(category ? category.slug : ALL_SLUG);
+  }
+
+  retry(): void {
+    this.catalogService.refresh();
   }
 }

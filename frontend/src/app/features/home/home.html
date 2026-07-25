@@ -1,56 +1,77 @@
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-  <!-- Hero Carousel -->
-  <app-hero-carousel [banners]="banners()" />
-
-  <!-- Category Navigation Pills -->
-  <div class="scrollbar-thin mt-8 flex gap-2 overflow-x-auto pb-2">
-    <button
-      type="button"
-      class="pill"
-      [class.pill-active]="selectedSlug() === ALL_SLUG"
-      [class.pill-inactive]="selectedSlug() !== ALL_SLUG"
-      (click)="selectCategory(null)"
-    >
-      All Products
-    </button>
-    @for (category of categories(); track category.id) {
-      <app-category-pill
-        [category]="category"
-        [active]="selectedSlug() === category.slug"
-        (selected)="selectCategory($event)"
-      />
-    }
-  </div>
-
-  <!-- Safety Notice -->
-  <div class="mt-6">
-    <app-safety-notice />
-  </div>
-
-  <!-- Featured Strip -->
-  @if (selectedSlug() === ALL_SLUG && featuredProducts().length > 0) {
-    <section class="mt-10">
-      <h2 class="section-heading">Featured Picks</h2>
-      <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        @for (product of featuredProducts(); track product.id) {
-          <app-product-card [product]="product" />
+  @if (loadError()) {
+    <div class="card-surface flex flex-col items-center gap-3 p-10 text-center">
+      <p class="text-sm text-slate-400">Could not load the storefront right now. Please check your connection.</p>
+      <button type="button" class="btn-secondary" (click)="retry()">Try Again</button>
+    </div>
+  } @else if (loading()) {
+    <div class="animate-pulse">
+      <div class="h-48 rounded-2xl bg-slate-900 sm:h-72"></div>
+      <div class="mt-8 flex gap-2">
+        <div class="h-9 w-28 rounded-full bg-slate-900"></div>
+        <div class="h-9 w-24 rounded-full bg-slate-900"></div>
+        <div class="h-9 w-32 rounded-full bg-slate-900"></div>
+      </div>
+      <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+          <div class="h-56 rounded-xl bg-slate-900"></div>
         }
       </div>
+    </div>
+  } @else {
+    <!-- Hero Carousel -->
+    <app-hero-carousel [banners]="banners()" />
+
+    <!-- Category Navigation Pills -->
+    <div class="scrollbar-thin mt-8 flex gap-2 overflow-x-auto pb-2">
+      <button
+        type="button"
+        class="pill"
+        [class.pill-active]="selectedSlug() === ALL_SLUG"
+        [class.pill-inactive]="selectedSlug() !== ALL_SLUG"
+        (click)="selectCategory(null)"
+      >
+        All Products
+      </button>
+      @for (category of categories(); track category.id) {
+        <app-category-pill
+          [category]="category"
+          [active]="selectedSlug() === category.slug"
+          (selected)="selectCategory($event)"
+        />
+      }
+    </div>
+
+    <!-- Safety Notice -->
+    <div class="mt-6">
+      <app-safety-notice />
+    </div>
+
+    <!-- Featured Strip -->
+    @if (selectedSlug() === ALL_SLUG && featuredProducts().length > 0) {
+      <section class="mt-10">
+        <h2 class="section-heading">Featured Picks</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          @for (product of featuredProducts(); track product.id) {
+            <app-product-card [product]="product" />
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Inventory Grid -->
+    <section class="mt-10">
+      <h2 class="section-heading">{{ selectedCategoryName() }}</h2>
+
+      @if (visibleProducts().length > 0) {
+        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          @for (product of visibleProducts(); track product.id) {
+            <app-product-card [product]="product" />
+          }
+        </div>
+      } @else {
+        <p class="mt-6 text-sm text-slate-500">No products found in this category yet.</p>
+      }
     </section>
   }
-
-  <!-- Inventory Grid -->
-  <section class="mt-10">
-    <h2 class="section-heading">{{ selectedCategoryName() }}</h2>
-
-    @if (visibleProducts().length > 0) {
-      <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        @for (product of visibleProducts(); track product.id) {
-          <app-product-card [product]="product" />
-        }
-      </div>
-    } @else {
-      <p class="mt-6 text-sm text-slate-500">No products found in this category yet.</p>
-    }
-  </section>
 </div>
