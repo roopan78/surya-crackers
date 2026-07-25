@@ -16,7 +16,7 @@ export const orderItemSchema = z.object({
 export const createOrderSchema = z.object({
   guestName: z.string().min(1).optional(),
   guestMobile: z.string().min(10).optional(),
-  pickupDate: z.coerce.date().optional(),
+  pickupDate: z.preprocess((v) => (v === '' ? undefined : v), z.coerce.date().optional()),
   pickupTime: z.string().optional(),
   notes: z.string().optional(),
   paymentProvider: z.nativeEnum(PaymentProviderType),
