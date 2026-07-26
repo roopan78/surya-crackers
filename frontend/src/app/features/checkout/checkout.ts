@@ -44,7 +44,7 @@ export class Checkout implements OnInit {
   ngOnInit(): void {
     const user = this.customerAuthService.currentUser();
     if (user) {
-      this.pickupForm.patchValue({ name: user.name ?? '', mobile: user.mobile });
+      this.pickupForm.patchValue({ name: user.name ?? '', mobile: user.mobile ?? '' });
     }
 
     this.paymentService.getAvailableMethods().subscribe({

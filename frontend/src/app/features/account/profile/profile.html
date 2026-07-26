@@ -3,8 +3,8 @@
 
   <div class="glass-card-solid mt-6 p-6">
     <div class="mb-5">
-      <p class="field-label">Mobile Number</p>
-      <p class="text-sm font-semibold text-brand-charcoal">{{ customerAuthService.currentUser()?.mobile }}</p>
+      <p class="field-label">Email</p>
+      <p class="text-sm font-semibold text-brand-charcoal">{{ customerAuthService.currentUser()?.email }}</p>
     </div>
 
     <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="submit()">
@@ -13,6 +13,14 @@
         <input id="name" type="text" formControlName="name" class="input-field" placeholder="Your name" />
         @if (form.controls.name.invalid && form.controls.name.touched) {
           <p class="field-error">Please enter your name.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="mobile">Mobile Number</label>
+        <input id="mobile" type="tel" formControlName="mobile" class="input-field" placeholder="98765 43210" />
+        @if (form.controls.mobile.invalid && form.controls.mobile.touched) {
+          <p class="field-error">Enter a valid 10-digit mobile number.</p>
         }
       </div>
 

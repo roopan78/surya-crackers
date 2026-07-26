@@ -41,7 +41,7 @@ export class UserManagement implements OnInit {
     if (role === user.role) return;
     this.userService.updateRole(user.id, role).subscribe({
       next: () => {
-        this.toastService.success(`${user.mobile} is now ${role}.`);
+        this.toastService.success(`${user.email} is now ${role}.`);
         this.userService.loadUsers({ search: this.searchTerm() });
       },
       error: () => this.toastService.error('Could not update this user’s role — please try again.'),

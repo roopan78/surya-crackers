@@ -1,15 +1,15 @@
 import rateLimit from 'express-rate-limit';
-import { normalizeMobile } from '../utils/phone';
+import { normalizeEmail } from '../utils/password';
 
-/** Keyed by mobile number (not just IP) so one phone can't be spammed with OTPs from many IPs, and vice versa. */
-export const otpRequestRateLimiter = rateLimit({
+/** Keyed by email (not just IP) so one account can't be brute-forced from many IPs, and vice versa. */
+export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
-    const mobile = typeof req.body?.mobile === 'string' ? normalizeMobile(req.body.mobile) : '';
-    return mobile || req.ip || 'unknown';
+    const email = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
+    return email || req.ip || 'unknown';
   },
-  message: { success: false, message: 'Too many OTP requests. Please try again later.' },
+  message: { success: false, message: 'Too many attempts. Please try again later.' },
 });

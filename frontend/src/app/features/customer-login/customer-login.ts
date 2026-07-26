@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { OtpLoginForm } from '../../shared/components/otp-login-form/otp-login-form';
+import { AuthForm } from '../../shared/components/auth-form/auth-form';
 
 @Component({
   selector: 'app-customer-login',
   standalone: true,
-  imports: [RouterLink, OtpLoginForm],
+  imports: [RouterLink, AuthForm],
   templateUrl: './customer-login.html',
 })
 export class CustomerLogin {}

@@ -24,6 +24,7 @@ export class Profile {
 
   readonly form = this.formBuilder.nonNullable.group({
     name: [this.customerAuthService.currentUser()?.name ?? '', [Validators.required, Validators.minLength(2)]],
+    mobile: [this.customerAuthService.currentUser()?.mobile ?? '', [Validators.pattern(/^[0-9]{10}$/)]],
   });
 
   submit(): void {
@@ -32,7 +33,8 @@ export class Profile {
       return;
     }
     this.saving.set(true);
-    this.customerAuthService.updateProfile(this.form.getRawValue().name).subscribe({
+    const { name, mobile } = this.form.getRawValue();
+    this.customerAuthService.updateProfile({ name, mobile: mobile || undefined }).subscribe({
       next: () => {
         this.saving.set(false);
         this.saved.set(true);

@@ -5,7 +5,7 @@ import { env } from '../config/env';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
-import { normalizeMobile } from '../utils/phone';
+import { normalizeEmail } from '../utils/password';
 import { toUserDTO } from '../models/dto';
 import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { ListUsersQuery, UpdateUserRoleInput } from '../validators/user.validator';
@@ -19,8 +19,9 @@ export const listUsers = asyncHandler(async (req: Request, res: Response) => {
     ...(query.search
       ? {
           OR: [
-            { mobile: { contains: query.search, mode: 'insensitive' } },
+            { email: { contains: query.search, mode: 'insensitive' } },
             { name: { contains: query.search, mode: 'insensitive' } },
+            { mobile: { contains: query.search, mode: 'insensitive' } },
           ],
         }
       : {}),
@@ -49,7 +50,7 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response) =
   }
 
   const isConfiguredSuperAdmin =
-    env.SUPER_ADMIN_MOBILE.length > 0 && existing.mobile === normalizeMobile(env.SUPER_ADMIN_MOBILE);
+    env.SUPER_ADMIN_EMAIL.length > 0 && existing.email === normalizeEmail(env.SUPER_ADMIN_EMAIL);
   if (isConfiguredSuperAdmin && role !== Role.SUPER_ADMIN) {
     throw ApiError.badRequest('The configured super-admin account cannot be downgraded.');
   }

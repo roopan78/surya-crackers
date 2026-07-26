@@ -32,41 +32,26 @@ enum PaymentProviderType {
   CASH_ON_PICKUP
 }
 
-enum OtpPurpose {
-  LOGIN
-}
-
 model User {
-  id        String   @id @default(cuid())
-  mobile    String   @unique
+  id String @id @default(cuid())
+
+  email String @unique
+  // Null for Google-only accounts, which have no local password to check.
+  passwordHash String?
+  // Google's stable subject claim; null until/unless the account links Google.
+  googleId String? @unique
+
   name      String?
+  mobile    String?
   role      Role     @default(CUSTOMER)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   orders OrderLedger[]
-  otps   Otp[]
 
   @@index([role])
   @@map("users")
-}
-
-model Otp {
-  id         String     @id @default(cuid())
-  mobile     String
-  codeHash   String
-  purpose    OtpPurpose @default(LOGIN)
-  expiresAt  DateTime
-  consumedAt DateTime?
-  attempts   Int        @default(0)
-  userId     String?
-  createdAt  DateTime   @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
-
-  @@index([mobile, purpose])
-  @@map("otps")
 }
 
 model Category {

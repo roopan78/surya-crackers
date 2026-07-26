@@ -5,7 +5,7 @@
       <p class="text-xs font-bold uppercase tracking-widest text-brand-gold">Surya Crackers</p>
       <p class="font-[family-name:--font-display] text-sm font-bold text-brand-charcoal">Admin Workspace</p>
       @if (currentUser()) {
-        <p class="mt-1 text-xs text-brand-ink-muted">Signed in as {{ currentUser()?.name || currentUser()?.mobile }}</p>
+        <p class="mt-1 text-xs text-brand-ink-muted">Signed in as {{ currentUser()?.name || currentUser()?.email }}</p>
       }
     </div>
 

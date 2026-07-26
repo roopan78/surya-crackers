@@ -70,8 +70,9 @@ export function toFooterDTO(footer: FooterConfig) {
 export function toUserDTO(user: User) {
   return {
     id: user.id,
-    mobile: user.mobile,
+    email: user.email,
     name: user.name,
+    mobile: user.mobile,
     role: user.role,
     isActive: user.isActive,
     createdAt: user.createdAt,

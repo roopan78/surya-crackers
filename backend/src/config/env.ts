@@ -9,12 +9,11 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
   JWT_EXPIRES_IN: z.string().default('1d'),
 
-  // RBAC / super-admin bootstrap
-  SUPER_ADMIN_MOBILE: z.string().default(''),
+  // RBAC / super-admin bootstrap — this email is always granted SUPER_ADMIN
+  SUPER_ADMIN_EMAIL: z.string().default(''),
 
-  // OTP
-  OTP_PROVIDER: z.enum(['mock']).default('mock'),
-  OTP_EXPIRY_MINUTES: z.coerce.number().int().positive().default(5),
+  // Google Sign-In — OAuth 2.0 Web client ID from Google Cloud Console
+  GOOGLE_CLIENT_ID: z.string().default(''),
 
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z

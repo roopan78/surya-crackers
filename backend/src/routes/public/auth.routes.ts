@@ -1,16 +1,29 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate.middleware';
 import { authenticateUser } from '../../middleware/auth.middleware';
-import { otpRequestRateLimiter } from '../../middleware/rateLimit.middleware';
-import { sendOtpSchema, updateProfileSchema, verifyOtpSchema } from '../../validators/auth.validator';
-import { sendOtp, verifyOtp, logout, me, updateProfile } from '../../controllers/auth.controller';
+import { loginRateLimiter } from '../../middleware/rateLimit.middleware';
+import {
+  googleLoginSchema,
+  loginSchema,
+  registerSchema,
+  updateProfileSchema,
+} from '../../validators/auth.validator';
+import {
+  registerUser,
+  loginUser,
+  googleLogin,
+  logout,
+  me,
+  updateProfile,
+} from '../../controllers/auth.controller';
 
 const router = Router();
 
-// send-otp/verify-otp are public — this single mechanism logs in customers,
+// register/login/google are public — this single mechanism logs in customers,
 // admins, and the super-admin alike; role is resolved server-side from the User row.
-router.post('/send-otp', otpRequestRateLimiter, validate(sendOtpSchema), sendOtp);
-router.post('/verify-otp', validate(verifyOtpSchema), verifyOtp);
+router.post('/register', loginRateLimiter, validate(registerSchema), registerUser);
+router.post('/login', loginRateLimiter, validate(loginSchema), loginUser);
+router.post('/google', loginRateLimiter, validate(googleLoginSchema), googleLogin);
 router.post('/logout', authenticateUser, logout);
 router.get('/me', authenticateUser, me);
 router.patch('/me', authenticateUser, validate(updateProfileSchema), updateProfile);
