@@ -17,13 +17,15 @@
       @if (searchOpen()) {
         <form class="hidden items-center sm:flex" (ngSubmit)="submitSearch()">
           <input
-            type="text"
+            #searchInput
+            type="search"
             [(ngModel)]="searchTerm"
             name="search"
-            autofocus
             placeholder="Search fireworks…"
+            aria-label="Search fireworks"
             class="input-field !w-56 !py-2"
           />
+          <button type="submit" class="sr-only">Search</button>
         </form>
       }
       <button type="button" class="btn-ghost !p-2.5" (click)="toggleSearch()" aria-label="Toggle search">
@@ -55,12 +57,15 @@
   @if (searchOpen()) {
     <form class="border-t border-black/5 px-4 py-2.5 sm:hidden" (ngSubmit)="submitSearch()">
       <input
-        type="text"
+        #searchInput
+        type="search"
         [(ngModel)]="searchTerm"
         name="search-mobile"
         placeholder="Search fireworks…"
+        aria-label="Search fireworks"
         class="input-field"
       />
+      <button type="submit" class="sr-only">Search</button>
     </form>
   }
 </header>
