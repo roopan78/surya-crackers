@@ -4,6 +4,7 @@ import {
   ElementRef,
   inject,
   input,
+  model,
   signal,
   viewChild,
 } from '@angular/core';
@@ -59,7 +60,8 @@ export class AuthForm implements AfterViewInit {
   readonly UserPlusIcon = UserPlus;
   readonly TriangleAlertIcon = TriangleAlert;
 
-  readonly isRegistering = signal(false);
+  /** Two-way bound so a host page can keep its own heading in sync with the mode. */
+  readonly isRegistering = model(false);
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly googleEnabled = signal(Boolean(environment.googleClientId));

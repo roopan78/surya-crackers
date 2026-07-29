@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthForm } from '../../shared/components/auth-form/auth-form';
 
@@ -8,4 +8,7 @@ import { AuthForm } from '../../shared/components/auth-form/auth-form';
   imports: [RouterLink, AuthForm],
   templateUrl: './customer-login.html',
 })
-export class CustomerLogin {}
+export class CustomerLogin {
+  /** Kept in sync with the form via two-way binding so the heading matches the mode. */
+  readonly isRegistering = signal(false);
+}

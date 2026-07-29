@@ -1,4 +1,10 @@
 @if (isRegistering()) {
+  @if (mode() === 'customer') {
+    <p class="mb-4 text-center text-sm text-brand-ink-secondary">
+      Create an account to track your orders and check out faster.
+    </p>
+  }
+
   <form class="flex flex-col gap-4" (ngSubmit)="register()" [formGroup]="registerForm">
     <div>
       <label [class]="dark() ? 'field-label !text-white/50' : 'field-label'" for="reg-name">Full Name</label>
@@ -75,6 +81,12 @@
     </button>
   </form>
 } @else {
+  @if (mode() === 'customer') {
+    <p class="mb-4 text-center text-sm text-brand-ink-secondary">
+      Sign in to track your orders and check out faster.
+    </p>
+  }
+
   <form class="flex flex-col gap-4" (ngSubmit)="login()" [formGroup]="loginForm">
     <div>
       <label [class]="dark() ? 'field-label !text-white/50' : 'field-label'" for="login-email">Email</label>

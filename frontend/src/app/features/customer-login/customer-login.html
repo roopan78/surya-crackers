@@ -1,14 +1,11 @@
 <div class="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 py-10">
   <div class="mb-6 text-center">
     <p class="section-eyebrow">Welcome</p>
-    <h1 class="section-heading mt-1">Sign In</h1>
-    <p class="mt-2 text-sm text-brand-ink-secondary">
-      Sign in to track your orders and check out faster.
-    </p>
+    <h1 class="section-heading mt-1">{{ isRegistering() ? 'Create Account' : 'Sign In' }}</h1>
   </div>
 
   <div class="glass-card-solid w-full p-6">
-    <app-auth-form mode="customer" />
+    <app-auth-form mode="customer" [(isRegistering)]="isRegistering" />
   </div>
 
   <a routerLink="/" class="mt-6 text-xs font-medium text-brand-ink-muted hover:text-brand-charcoal">Continue browsing without an account</a>
