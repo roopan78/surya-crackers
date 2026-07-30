@@ -1,0 +1,194 @@
+<div class="relative">
+  <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-ink-muted">
+    <lucide-icon [img]="SearchIcon" class="h-4 w-4" />
+  </span>
+
+  <input
+    #searchInput
+    type="text"
+    role="combobox"
+    autocomplete="off"
+    class="input-field !pl-9 !pr-9"
+    [placeholder]="placeholder()"
+    [value]="term()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-activedescendant]="activeDescendantId()"
+    aria-controls="search-results-list"
+    aria-autocomplete="list"
+    aria-label="Search categories and products"
+    (input)="onInput($any($event.target).value)"
+    (focus)="onFocus()"
+    (keydown)="onKeydown($event)"
+  />
+
+  @if (term().length > 0) {
+    <button
+      type="button"
+      class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-brand-ink-muted transition hover:bg-black/5 hover:text-brand-charcoal"
+      aria-label="Clear search"
+      (click)="clear()"
+    >
+      <lucide-icon [img]="XIcon" class="h-4 w-4" />
+    </button>
+  }
+</div>
+
+@if (open()) {
+  <div
+    #resultsList
+    id="search-results-list"
+    role="listbox"
+    aria-label="Search results"
+    class="search-dropdown glass-card-solid absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-y-auto overscroll-contain"
+  >
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="flex items-center gap-2.5 px-4 py-5 text-sm text-brand-ink-secondary">
+        <lucide-icon [img]="LoaderIcon" class="h-4 w-4 animate-spin text-brand-red" />
+        <span>Searching…</span>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (failed() && !loading()) {
+      <div class="px-4 py-5 text-center">
+        <p class="text-sm font-medium text-brand-charcoal">Unable to search.</p>
+        <p class="mt-0.5 text-sm text-brand-ink-secondary">Please try again.</p>
+        <button type="button" class="btn-secondary mt-3 !py-1.5 text-sm" (click)="retry()">Retry</button>
+      </div>
+    }
+
+    <!-- Suggestions shown while the box is empty -->
+    @if (showSuggestions() && !loading() && !failed()) {
+      @if (recentSearches().length > 0) {
+        <section class="border-b border-black/5 px-2 py-2">
+          <header class="flex items-center justify-between px-2 pb-1">
+            <h3 class="search-group-heading">Recent Searches</h3>
+            <button
+              type="button"
+              class="text-xs font-medium text-brand-ink-muted transition hover:text-brand-red"
+              (click)="clearRecentSearches()"
+            >
+              Clear
+            </button>
+          </header>
+          @for (recent of recentSearches(); track recent) {
+            <button type="button" class="search-row" (click)="runRecentSearch(recent)">
+              <lucide-icon [img]="ClockIcon" class="h-4 w-4 shrink-0 text-brand-ink-muted" />
+              <span class="truncate">{{ recent }}</span>
+            </button>
+          }
+        </section>
+      }
+
+      @if (popularCategories().length > 0) {
+        <section class="px-2 py-2">
+          <h3 class="search-group-heading px-2 pb-1">Popular Categories</h3>
+          @for (category of popularCategories(); track category.id) {
+            <button type="button" class="search-row" (click)="openCategory(category)">
+              <lucide-icon [img]="TagIcon" class="h-4 w-4 shrink-0 text-brand-ink-muted" />
+              <span class="truncate">{{ category.name }}</span>
+            </button>
+          }
+        </section>
+      }
+
+      @if (recentSearches().length === 0 && popularCategories().length === 0) {
+        <p class="px-4 py-5 text-center text-sm text-brand-ink-muted">
+          Type at least {{ MIN_SEARCH_LENGTH }} characters to search.
+        </p>
+      }
+    }
+
+    <!-- Grouped results -->
+    @if (!loading() && !failed() && hasResults()) {
+      @if (results().categories.length > 0) {
+        <section class="px-2 py-2">
+          <h3 class="search-group-heading px-2 pb-1">Categories</h3>
+          @for (category of results().categories; track category.id; let i = $index) {
+            <button
+              type="button"
+              role="option"
+              [id]="'search-opt-category-' + category.id"
+              [attr.aria-selected]="activeIndex() === i"
+              class="search-row"
+              [class.search-row-active]="activeIndex() === i"
+              (click)="openCategory(category)"
+            >
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-red-soft text-brand-red"
+              >
+                <lucide-icon [img]="TagIcon" class="h-4 w-4" />
+              </span>
+              <span class="min-w-0 flex-1 text-left">
+                <span class="block truncate font-medium text-brand-charcoal">
+                  @for (segment of highlight(category.name); track $index) {
+                    @if (segment.match) {
+                      <mark class="search-mark">{{ segment.text }}</mark>
+                    } @else {
+                      {{ segment.text }}
+                    }
+                  }
+                </span>
+              </span>
+              <span class="shrink-0 text-xs font-medium text-brand-ink-muted">View Category</span>
+            </button>
+          }
+        </section>
+      }
+
+      @if (results().products.length > 0) {
+        <section class="border-t border-black/5 px-2 py-2">
+          <h3 class="search-group-heading px-2 pb-1">Products</h3>
+          @for (product of results().products; track product.id; let i = $index) {
+            <button
+              type="button"
+              role="option"
+              [id]="'search-opt-product-' + product.id"
+              [attr.aria-selected]="activeIndex() === productIndexOffset() + i"
+              class="search-row"
+              [class.search-row-active]="activeIndex() === productIndexOffset() + i"
+              (click)="openProduct(product)"
+            >
+              @if (product.image) {
+                <img
+                  [src]="product.image"
+                  alt=""
+                  loading="lazy"
+                  class="h-9 w-9 shrink-0 rounded-lg object-cover"
+                />
+              } @else {
+                <span class="h-9 w-9 shrink-0 rounded-lg bg-brand-mist"></span>
+              }
+              <span class="min-w-0 flex-1 text-left">
+                <span class="block truncate font-medium text-brand-charcoal">
+                  @for (segment of highlight(product.name); track $index) {
+                    @if (segment.match) {
+                      <mark class="search-mark">{{ segment.text }}</mark>
+                    } @else {
+                      {{ segment.text }}
+                    }
+                  }
+                </span>
+                <span class="block truncate text-xs text-brand-ink-muted">
+                  Category: {{ product.categoryName }}
+                </span>
+              </span>
+              <span class="shrink-0 text-sm font-bold text-brand-charcoal">₹{{ product.price }}</span>
+            </button>
+          }
+        </section>
+      }
+    }
+
+    <!-- Empty -->
+    @if (showEmptyState()) {
+      <div class="flex flex-col items-center gap-2 px-4 py-7 text-center">
+        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-mist text-brand-ink-muted">
+          <lucide-icon [img]="SearchXIcon" class="h-5 w-5" />
+        </span>
+        <p class="text-sm text-brand-ink-secondary">No products or categories found.</p>
+      </div>
+    }
+  </div>
+}

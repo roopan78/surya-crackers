@@ -1,0 +1,62 @@
+/* Dropdown shell — width is inherited from the host via left-0/right-0, so the
+   panel always matches the input and can never overflow a narrow viewport. */
+.search-dropdown {
+  max-height: 450px;
+  /* Momentum scrolling on touch devices. */
+  -webkit-overflow-scrolling: touch;
+  animation: search-dropdown-in 150ms ease-out;
+}
+
+@keyframes search-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-dropdown {
+    animation: none;
+  }
+}
+
+.search-group-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-brand-ink-muted);
+}
+
+.search-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  color: var(--color-brand-ink-secondary);
+  text-align: left;
+  transition: background-color 150ms ease;
+}
+
+.search-row:hover {
+  background-color: rgb(0 0 0 / 0.04);
+}
+
+/* Keyboard selection must read the same as hover, but win over it. */
+.search-row-active,
+.search-row-active:hover {
+  background-color: var(--color-brand-red-soft);
+}
+
+.search-mark {
+  background-color: transparent;
+  font-weight: 700;
+  color: var(--color-brand-red);
+}

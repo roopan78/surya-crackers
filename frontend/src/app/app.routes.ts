@@ -25,9 +25,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home').then((m) => m.Home),
       },
       {
+        // `:id` accepts either a product id or a slug — see ProductDetail.
         path: 'product/:id',
         loadComponent: () =>
           import('./features/product-detail/product-detail').then((m) => m.ProductDetail),
+      },
+      {
+        path: 'category/:slug',
+        loadComponent: () => import('./features/category/category').then((m) => m.CategoryPage),
       },
       {
         path: 'checkout',

@@ -20,12 +20,13 @@ export class ProductDetail {
   private readonly catalogService = inject(CatalogService);
   private readonly cartService = inject(CartService);
 
-  private readonly productId = toSignal(
+  /** Route param carries a slug for new links and an id for older ones. */
+  private readonly productKey = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
   );
 
-  readonly product = computed(() => this.catalogService.getProductById(this.productId()));
+  readonly product = computed(() => this.catalogService.getProductByIdOrSlug(this.productKey()));
   readonly boxesToAdd = signal(1);
   readonly justAdded = signal(false);
 

@@ -1,0 +1,48 @@
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+  <a routerLink="/" class="btn-ghost -ml-3 mb-4">
+    <lucide-icon [img]="ArrowLeftIcon" class="h-4 w-4" />
+    Back to shop
+  </a>
+
+  @if (loadError()) {
+    <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
+      <p class="text-sm text-brand-ink-secondary">Could not load this category right now. Please check your connection.</p>
+      <button type="button" class="btn-secondary" (click)="retry()">Try Again</button>
+    </div>
+  } @else if (loading()) {
+    <div>
+      <div class="skeleton h-10 w-64 rounded-xl"></div>
+      <div class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+          <div class="skeleton h-60 rounded-[22px]"></div>
+        }
+      </div>
+    </div>
+  } @else if (!category()) {
+    <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
+      <h1 class="section-heading">Category not found</h1>
+      <p class="text-sm text-brand-ink-secondary">This category may have been renamed or removed.</p>
+      <a routerLink="/" class="btn-primary mt-1">Browse all products</a>
+    </div>
+  } @else {
+    <header>
+      <h1 class="section-heading">{{ category()!.name }}</h1>
+      @if (category()!.description) {
+        <p class="mt-1.5 max-w-2xl text-sm text-brand-ink-secondary">{{ category()!.description }}</p>
+      }
+      <p class="mt-1 text-sm text-brand-ink-muted">
+        {{ products().length }} {{ products().length === 1 ? 'product' : 'products' }}
+      </p>
+    </header>
+
+    @if (products().length > 0) {
+      <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        @for (product of products(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    } @else {
+      <p class="mt-8 text-sm text-brand-ink-muted">No products in this category yet.</p>
+    }
+  }
+</div>

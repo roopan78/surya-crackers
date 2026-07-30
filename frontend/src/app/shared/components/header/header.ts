@@ -6,20 +6,19 @@ import {
   effect,
   inject,
   signal,
-  viewChildren,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Flame, ShoppingCart, Search, User, X } from 'lucide-angular';
 import { CartService } from '../../../core/services/cart.service';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
+import { SearchComponent } from '../../search/search.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule, FormsModule],
+  imports: [RouterLink, LucideAngularModule, SearchComponent],
   templateUrl: './header.html',
 })
 export class Header {
@@ -28,14 +27,13 @@ export class Header {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
+  private readonly hostRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly FlameIcon = Flame;
   readonly ShoppingCartIcon = ShoppingCart;
   readonly SearchIcon = Search;
   readonly UserIcon = User;
   readonly XIcon = X;
-
-  private readonly searchInputs = viewChildren<ElementRef<HTMLInputElement>>('searchInput');
 
   /** The search that is actually applied, per the URL — not what is being typed. */
   private readonly activeQuery = toSignal(
@@ -44,16 +42,12 @@ export class Header {
   );
 
   readonly searchOpen = signal(false);
-  readonly searchTerm = signal('');
 
   constructor() {
-    // Keep the box showing whatever search is in effect, so deep links and
-    // browser back/forward don't leave an empty input contradicting the
-    // "Results for ..." heading below it.
+    // A results page reached by any route (deep link, back/forward, "see all
+    // results") should leave the search affordance open rather than collapsed.
     effect(() => {
-      const query = this.activeQuery();
-      this.searchTerm.set(query);
-      if (query) {
+      if (this.activeQuery()) {
         this.searchOpen.set(true);
       }
     });
@@ -70,14 +64,13 @@ export class Header {
     afterNextRender(() => this.focusSearchInput(), { injector: this.injector });
   }
 
-  submitSearch(): void {
-    const q = this.searchTerm().trim();
-    this.router.navigate(['/'], { queryParams: q ? { q } : {} });
+  /** Collapse the box once a search result has been opened. */
+  onSearchNavigated(): void {
+    this.searchOpen.set(false);
   }
 
   private closeSearch(): void {
     this.searchOpen.set(false);
-    this.searchTerm.set('');
     if (this.activeQuery()) {
       // Drop `q` while preserving the current path and any other params.
       const tree = this.router.parseUrl(this.router.url);
@@ -88,8 +81,13 @@ export class Header {
   }
 
   private focusSearchInput(): void {
-    // Desktop and mobile inputs are both in the DOM; only one is laid out.
-    const visible = this.searchInputs().find((input) => input.nativeElement.offsetParent !== null);
-    visible?.nativeElement.focus();
+    // Desktop and mobile instances are both in the DOM; only one is laid out.
+    const inputs = this.hostRef.nativeElement.querySelectorAll<HTMLInputElement>('app-search input');
+    for (const input of Array.from(inputs)) {
+      if (input.offsetParent !== null) {
+        input.focus();
+        return;
+      }
+    }
   }
 }

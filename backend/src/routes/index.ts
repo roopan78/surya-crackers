@@ -5,6 +5,7 @@ import contentRoutes from './public/content.routes';
 import ordersRoutes from './public/orders.routes';
 import authRoutes from './public/auth.routes';
 import paymentsRoutes from './public/payments.routes';
+import searchRoutes from './public/search.routes';
 import adminRoutes from './admin';
 
 const router = Router();
@@ -15,6 +16,7 @@ router.use('/content', contentRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/auth', authRoutes);
 router.use('/payments', paymentsRoutes);
+router.use('/search', searchRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;

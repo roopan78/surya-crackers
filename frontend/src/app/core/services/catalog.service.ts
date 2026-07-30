@@ -76,4 +76,13 @@ export class CatalogService {
   getProductById(id: string): Product | undefined {
     return this.productsSignal().find((p) => p.id === id);
   }
+
+  /**
+   * Product URLs are slug-based (`/product/red-bijili`), but id-based links were
+   * shipped first and may still exist in the wild — and in bookmarks. Resolving
+   * either keeps both working off a single route.
+   */
+  getProductByIdOrSlug(idOrSlug: string): Product | undefined {
+    return this.productsSignal().find((p) => p.slug === idOrSlug || p.id === idOrSlug);
+  }
 }
