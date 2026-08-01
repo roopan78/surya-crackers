@@ -2,6 +2,7 @@ import { PaymentProviderType } from '@prisma/client';
 import { env } from '../config/env';
 import { ApiError } from '../utils/ApiError';
 import { getPaymentProvider } from '../providers/payment/payment-provider.factory';
+import { isUpiConfigured } from './upi.service';
 import { PaymentInitiationParams, PaymentInitiationResult } from '../providers/payment/payment-provider.interface';
 
 export interface PaymentMethodInfo {
@@ -13,10 +14,18 @@ export interface PaymentMethodInfo {
 
 const PHONEPE_UNAVAILABLE_MESSAGE =
   'Online payment will be available shortly. We are currently completing our payment gateway verification.';
+const UPI_UNAVAILABLE_MESSAGE = 'UPI payment is temporarily unavailable. Please select Cash on Pickup.';
 
 export function getAvailableMethods(): PaymentMethodInfo[] {
+  const upiAvailable = isUpiConfigured();
   return [
     { provider: PaymentProviderType.CASH_ON_PICKUP, label: 'Cash on Pickup', available: true },
+    {
+      provider: PaymentProviderType.UPI_DIRECT,
+      label: 'UPI / QR Payment',
+      available: upiAvailable,
+      ...(upiAvailable ? {} : { message: UPI_UNAVAILABLE_MESSAGE }),
+    },
     {
       provider: PaymentProviderType.PHONEPE,
       label: 'PhonePe',
@@ -32,6 +41,9 @@ export async function initiatePayment(
 ): Promise<PaymentInitiationResult> {
   if (providerType === PaymentProviderType.PHONEPE && !env.PHONEPE_ENABLED) {
     throw ApiError.badRequest('PhonePe is not available yet. Please select Cash on Pickup.');
+  }
+  if (providerType === PaymentProviderType.UPI_DIRECT && !isUpiConfigured()) {
+    throw ApiError.badRequest('UPI payment is not available yet. Please select Cash on Pickup.');
   }
 
   const provider = getPaymentProvider(providerType);

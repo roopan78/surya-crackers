@@ -15,6 +15,12 @@ const envSchema = z.object({
   // Google Sign-In — OAuth 2.0 Web client ID from Google Cloud Console
   GOOGLE_CLIENT_ID: z.string().default(''),
 
+  // Direct UPI payments — QR/intent links point at this VPA. Leaving BUSINESS_VPA
+  // empty keeps the UPI_DIRECT method hidden from checkout (safe default until
+  // the real merchant VPA is configured).
+  BUSINESS_VPA: z.string().default(''),
+  BUSINESS_NAME: z.string().default(''),
+
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z
     .enum(['true', 'false'])

@@ -27,6 +27,15 @@ export const orderIdParamsSchema = z.object({
   id: z.string().min(1),
 });
 
+export const orderNumberParamsSchema = z.object({
+  orderNumber: z.string().min(1),
+});
+
+// UTRs (UPI transaction reference numbers) are exactly 12 digits.
+export const submitUtrSchema = z.object({
+  utrNumber: z.string().regex(/^\d{12}$/, 'UTR number must be exactly 12 digits'),
+});
+
 export const listOrdersQuerySchema = z.object({
   status: z.enum(['PENDING', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED']).optional(),
   page: z.coerce.number().int().positive().default(1),
@@ -41,3 +50,4 @@ export const updateOrderStatusSchema = z.object({
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type ListOrdersQuery = z.infer<typeof listOrdersQuerySchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type SubmitUtrInput = z.infer<typeof submitUtrSchema>;

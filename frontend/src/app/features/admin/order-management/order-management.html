@@ -67,10 +67,12 @@
                     [class.text-emerald-700]="order.paymentStatus === 'PAID'"
                     [class.bg-amber-50]="order.paymentStatus === 'PENDING'"
                     [class.text-amber-700]="order.paymentStatus === 'PENDING'"
+                    [class.bg-sky-50]="order.paymentStatus === 'AWAITING_VERIFICATION'"
+                    [class.text-sky-700]="order.paymentStatus === 'AWAITING_VERIFICATION'"
                   >
                     {{ order.paymentStatus }}
                   </span>
-                  @if (order.paymentStatus === 'PENDING' && order.paymentProvider === 'CASH_ON_PICKUP') {
+                  @if (canMarkPaid(order)) {
                     <button
                       type="button"
                       class="text-xs font-semibold text-brand-red hover:underline"
@@ -80,6 +82,9 @@
                     </button>
                   }
                 </div>
+                @if (order.utrNumber) {
+                  <p class="mt-1 text-[11px] text-brand-ink-muted">UTR: {{ order.utrNumber }}</p>
+                }
               </td>
               <td class="px-5 py-3" (click)="$event.stopPropagation()">
                 <select

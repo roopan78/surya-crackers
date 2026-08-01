@@ -99,6 +99,7 @@ export function toOrderDTO(order: OrderWithCustomer) {
     paymentStatus: order.paymentStatus,
     paymentProvider: order.paymentProvider,
     paymentReference: order.paymentReference,
+    utrNumber: order.utrNumber,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };

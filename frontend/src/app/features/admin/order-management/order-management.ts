@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package } from 'lucide-angular';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
-import { OrderStatus } from '../../../core/models';
+import { Order, OrderStatus } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
 
 const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
@@ -78,6 +78,21 @@ export class OrderManagement implements OnInit {
       },
       error: () => this.toastService.error('Could not update order status — please try again.'),
     });
+  }
+
+  /**
+   * Cash orders are marked paid at pickup; UPI orders are marked paid once the
+   * submitted UTR (or a bank credit that arrived without one) is verified
+   * against the account statement.
+   */
+  canMarkPaid(order: Order): boolean {
+    if (order.paymentProvider === 'CASH_ON_PICKUP') {
+      return order.paymentStatus === 'PENDING';
+    }
+    if (order.paymentProvider === 'UPI_DIRECT') {
+      return order.paymentStatus === 'PENDING' || order.paymentStatus === 'AWAITING_VERIFICATION';
+    }
+    return false;
   }
 
   confirmPaymentManually(id: string): void {

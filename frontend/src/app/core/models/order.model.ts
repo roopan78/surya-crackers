@@ -27,6 +27,7 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentProvider: PaymentProviderType;
   paymentReference: string | null;
+  utrNumber: string | null;
   createdAt: string;
   updatedAt: string;
 }

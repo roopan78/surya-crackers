@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Prisma, PaymentStatus } from '@prisma/client';
+import { Prisma, PaymentProviderType, PaymentStatus } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
@@ -8,7 +8,8 @@ import { toOrderDTO } from '../models/dto';
 import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { initiatePayment } from '../services/payment.service';
-import { CreateOrderInput, ListOrdersQuery, UpdateOrderStatusInput } from '../validators/order.validator';
+import { generateUpiPaymentDetails } from '../services/upi.service';
+import { CreateOrderInput, ListOrdersQuery, SubmitUtrInput, UpdateOrderStatusInput } from '../validators/order.validator';
 
 const MAX_ORDER_NUMBER_ATTEMPTS = 5;
 const includeCustomer = { customer: true } satisfies Prisma.OrderLedgerInclude;
@@ -70,6 +71,62 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     }
   }
   throw ApiError.internal('Failed to generate a unique order number, please retry');
+});
+
+// GET /api/orders/:orderNumber/upi-details — public (guests pay too); serves the
+// dynamic QR / upi:// intent link for the order-confirmation page.
+export const getUpiDetails = asyncHandler(async (req: Request, res: Response) => {
+  const order = await prisma.orderLedger.findUnique({ where: { orderNumber: req.params.orderNumber } });
+  if (!order) {
+    throw ApiError.notFound('Order not found');
+  }
+  if (order.paymentProvider !== PaymentProviderType.UPI_DIRECT) {
+    throw ApiError.badRequest('This order does not use UPI payment');
+  }
+
+  const amount = Number(order.estimatedTotal);
+  const { upiUrl, qrDataUrl, vpa, businessName } = await generateUpiPaymentDetails(order.orderNumber, amount);
+
+  return sendSuccess(res, {
+    upiUrl,
+    qrDataUrl,
+    vpa,
+    businessName,
+    orderNumber: order.orderNumber,
+    amount,
+    // Lets the confirmation page restore its state after a hard refresh
+    // (already-submitted UTR, already-verified payment).
+    paymentStatus: order.paymentStatus,
+    utrNumber: order.utrNumber,
+  });
+});
+
+// POST /api/orders/:orderNumber/submit-utr — customer reports their UPI
+// transaction reference; staff verify it against the bank credit before
+// marking the order PAID.
+export const submitUtr = asyncHandler(async (req: Request, res: Response) => {
+  const { utrNumber } = req.body as SubmitUtrInput;
+
+  const order = await prisma.orderLedger.findUnique({ where: { orderNumber: req.params.orderNumber } });
+  if (!order) {
+    throw ApiError.notFound('Order not found');
+  }
+  if (order.paymentProvider !== PaymentProviderType.UPI_DIRECT) {
+    throw ApiError.badRequest('This order does not use UPI payment');
+  }
+  if (order.paymentStatus === PaymentStatus.PAID) {
+    throw ApiError.conflict('Payment for this order is already confirmed');
+  }
+
+  // Re-submission while AWAITING_VERIFICATION is allowed on purpose — it lets
+  // the customer correct a mistyped UTR before staff verify it.
+  const updated = await prisma.orderLedger.update({
+    where: { orderNumber: order.orderNumber },
+    data: { utrNumber, paymentStatus: PaymentStatus.AWAITING_VERIFICATION },
+    include: includeCustomer,
+  });
+
+  return sendSuccess(res, toOrderDTO(updated));
 });
 
 // GET /api/orders/mine — registered customers only

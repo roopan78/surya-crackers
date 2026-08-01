@@ -105,6 +105,7 @@ export class Checkout implements OnInit {
           state: {
             estimatedTotal: result.estimatedTotal,
             paymentStatus: result.paymentStatus,
+            paymentProvider: provider,
             pickupDate: details.pickupDate,
             pickupTime: details.pickupTime,
           },
