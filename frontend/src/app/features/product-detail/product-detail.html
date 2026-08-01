@@ -32,14 +32,14 @@
           @if (p.isFeatured) {
             <span class="badge-gold mb-3">Featured Product</span>
           }
-          <h1 class="font-[family-name:--font-display] text-2xl font-extrabold tracking-tight text-brand-charcoal sm:text-3xl">{{ p.name }}</h1>
+          <h1 class="font-display text-2xl font-extrabold tracking-tight text-brand-charcoal sm:text-3xl">{{ p.name }}</h1>
           <p class="mt-2 text-sm text-brand-ink-muted">Category: {{ p.categorySlug | titlecase }}</p>
         </div>
 
         <div class="glass-card-solid flex flex-wrap items-center justify-between gap-4 p-5">
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-brand-ink-muted">Price per box</p>
-            <p class="font-[family-name:--font-display] text-3xl font-extrabold text-brand-charcoal">₹{{ p.price }}</p>
+            <p class="font-display text-3xl font-extrabold text-brand-charcoal">₹{{ p.price }}</p>
           </div>
           <div class="flex items-center gap-2 text-sm text-brand-ink-secondary">
             <lucide-icon [img]="PackageCheckIcon" class="h-4 w-4 text-brand-gold" />

@@ -157,7 +157,7 @@
               </p>
               <p class="text-xs text-brand-ink-muted">{{ categoryName(product.categorySlug) }} · {{ product.boxQuantity }} · Stock {{ product.stockCount }}</p>
             </div>
-            <p class="font-[family-name:--font-display] text-sm font-bold text-brand-charcoal">₹{{ product.price }}</p>
+            <p class="font-display text-sm font-bold text-brand-charcoal">₹{{ product.price }}</p>
             <div class="flex gap-2">
               <button type="button" class="btn-secondary !px-2 !py-1.5 text-xs" (click)="startEdit(product)">
                 <lucide-icon [img]="PencilIcon" class="h-3.5 w-3.5" />

@@ -96,7 +96,7 @@ body {
   }
 
   .section-heading {
-    @apply font-[family-name:--font-display] text-2xl font-bold tracking-tight text-brand-charcoal sm:text-3xl;
+    @apply font-display text-2xl font-bold tracking-tight text-brand-charcoal sm:text-3xl;
   }
 
   .section-eyebrow {
