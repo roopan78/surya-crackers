@@ -70,6 +70,30 @@
         </div>
       </div>
     </div>
+
+    <!-- Related Products -->
+    @if (relatedProducts().length > 0) {
+      <section class="mt-14">
+        <h2 class="section-heading">You may also like</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          @for (related of relatedProducts(); track related.id) {
+            <app-product-card [product]="related" />
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Recently Viewed -->
+    @if (recentlyViewed().length > 0) {
+      <section class="mt-14">
+        <h2 class="section-heading">Recently Viewed</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          @for (viewed of recentlyViewed(); track viewed.id) {
+            <app-product-card [product]="viewed" />
+          }
+        </div>
+      </section>
+    }
   </div>
 } @else {
   <div class="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-24 text-center">

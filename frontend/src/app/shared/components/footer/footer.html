@@ -48,7 +48,9 @@
           <li><a routerLink="/return-policy" class="transition hover:text-brand-red">Return Policy</a></li>
           <li><a routerLink="/privacy-policy" class="transition hover:text-brand-red">Privacy Policy</a></li>
           <li><a routerLink="/terms-and-conditions" class="transition hover:text-brand-red">Terms &amp; Conditions</a></li>
-          <li><a routerLink="/admin/login" class="transition hover:text-brand-red">Admin Login</a></li>
+          @if (showAdminLink()) {
+            <li><a routerLink="/admin/login" class="transition hover:text-brand-red">Admin Login</a></li>
+          }
         </ul>
       </div>
 
