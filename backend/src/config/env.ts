@@ -24,6 +24,19 @@ const envSchema = z.object({
   BUSINESS_VPA: z.string().default(''),
   BUSINESS_NAME: z.string().default(''),
 
+  // WhatsApp Business Cloud API (Meta). Leaving ACCESS_TOKEN or PHONE_NUMBER_ID
+  // empty disables notification sending entirely — every send is then logged as
+  // SKIPPED instead of failing, so a missing config never breaks checkout.
+  WHATSAPP_ACCESS_TOKEN: z.string().default(''),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().default(''),
+  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().default(''),
+  // Shared secret echoed back during Meta's webhook subscription handshake.
+  WHATSAPP_VERIFY_TOKEN: z.string().default(''),
+  // Names of the Meta-approved message templates (not the message bodies).
+  WHATSAPP_TEMPLATE_ORDER_SUCCESS: z.string().default('order_confirmation'),
+  WHATSAPP_TEMPLATE_ORDER_FAILED: z.string().default('order_failed'),
+  WHATSAPP_TEMPLATE_LANGUAGE: z.string().default('en'),
+
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z
     .enum(['true', 'false'])

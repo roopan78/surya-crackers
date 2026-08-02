@@ -9,6 +9,7 @@ import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { initiatePayment } from '../services/payment.service';
 import { generateUpiPaymentDetails } from '../services/upi.service';
+import { queueOrderNotification } from '../services/notification.service';
 import { CreateOrderInput, ListOrdersQuery, SubmitUtrInput, UpdateOrderStatusInput } from '../validators/order.validator';
 
 const MAX_ORDER_NUMBER_ATTEMPTS = 5;
@@ -24,11 +25,21 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const estimatedTotal = input.items.reduce((sum, item) => sum + item.price * item.boxes, 0);
+  // A registered customer's contact details live on their account; guests
+  // supply them at checkout. Resolved once, used for the WhatsApp notification
+  // on both the success and failure paths.
+  const customer = customerId
+    ? await prisma.user.findUnique({ where: { id: customerId }, select: { name: true, mobile: true } })
+    : null;
+  const contact = {
+    customerName: customerId ? customer?.name : input.guestName,
+    customerMobile: customerId ? customer?.mobile : input.guestMobile,
+  };
 
   for (let attempt = 0; attempt < MAX_ORDER_NUMBER_ATTEMPTS; attempt += 1) {
-    try {
-      const orderNumber = generateOrderNumber();
+    const orderNumber = generateOrderNumber();
 
+    try {
       const payment = await initiatePayment(input.paymentProvider, {
         orderId: orderNumber,
         orderNumber,
@@ -52,6 +63,20 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
         },
       });
 
+      // Fire-and-forget: the customer's confirmation must never delay or fail
+      // the response. Delivery is tracked in NotificationLog instead.
+      queueOrderNotification('ORDER_CREATED', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        ...contact,
+        estimatedTotal,
+        paymentProvider: order.paymentProvider,
+        paymentStatus: order.paymentStatus,
+        pickupDate: order.pickupDate,
+        pickupTime: order.pickupTime,
+        createdAt: order.createdAt,
+      });
+
       return sendSuccess(
         res,
         {
@@ -66,6 +91,16 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     } catch (error) {
       const isOrderNumberCollision = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
       if (!isOrderNumberCollision) {
+        // Genuine failure (payment initiation rejected, database unavailable…):
+        // tell the customer their order did not go through, then let the error
+        // middleware produce the HTTP response as before.
+        queueOrderNotification('ORDER_FAILED', {
+          orderNumber,
+          ...contact,
+          estimatedTotal,
+          paymentProvider: input.paymentProvider,
+          reason: error instanceof ApiError ? error.message : 'We could not process your order.',
+        });
         throw error;
       }
     }

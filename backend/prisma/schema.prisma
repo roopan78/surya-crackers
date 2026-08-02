@@ -34,6 +34,25 @@ enum PaymentProviderType {
   UPI_DIRECT
 }
 
+// Delivery channels a customer notification can go out on. Only WHATSAPP is
+// implemented; SMS/EMAIL/PUSH are here so adding a channel is a provider +
+// enum value, not a schema migration of the log table.
+enum NotificationChannelType {
+  WHATSAPP
+  SMS
+  EMAIL
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  SKIPPED
+}
+
 model User {
   id String @id @default(cuid())
 
@@ -147,11 +166,44 @@ model OrderLedger {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  customer User? @relation(fields: [customerId], references: [id])
+  customer      User?             @relation(fields: [customerId], references: [id])
+  notifications NotificationLog[]
 
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
   @@index([customerId])
   @@map("order_ledger")
+}
+
+/// One row per notification attempt. Doubles as the duplicate guard: the
+/// unique (orderId, event, channel) index is claimed before the provider call,
+/// so a retried request can never send the same message twice.
+model NotificationLog {
+  id      String  @id @default(cuid())
+  orderId String?
+  // Kept denormalized so failure notifications (which have no order row yet)
+  // are still traceable to the order number the customer was quoted.
+  orderNumber String?
+
+  event        String
+  channel      NotificationChannelType @default(WHATSAPP)
+  templateName String
+  recipient    String
+
+  status            NotificationStatus @default(PENDING)
+  providerMessageId String?
+  failureReason     String?
+  attempts          Int                @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order OrderLedger? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([orderId, event, channel])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([providerMessageId])
+  @@map("notification_log")
 }
