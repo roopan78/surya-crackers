@@ -275,20 +275,75 @@ export function queueOrderNotification(event: NotificationEvent, context: OrderN
   void sendOrderNotification(event, context);
 }
 
-/** Delivery-status webhook updates (sent/delivered/read/failed) from Meta. */
+/**
+ * Delivery lifecycle ordering. Meta retries webhook batches and does not
+ * guarantee ordering, so a status is only applied when it moves the row
+ * *forward* — that makes replays and late-arriving DELIVERED-after-READ events
+ * no-ops without needing a separate processed-events table.
+ */
+const STATUS_RANK: Record<NotificationStatus, number> = {
+  [NotificationStatus.PENDING]: 0,
+  [NotificationStatus.SKIPPED]: 0,
+  [NotificationStatus.SENT]: 1,
+  [NotificationStatus.DELIVERED]: 2,
+  [NotificationStatus.READ]: 3,
+  // Terminal: a failure outranks everything, but a repeated failure is still a duplicate.
+  [NotificationStatus.FAILED]: 4,
+};
+
+export type DeliveryStatusOutcome = 'updated' | 'duplicate' | 'unknown' | 'error';
+
+/** Applies one delivery-status webhook event (sent/delivered/read/failed). */
 export async function applyDeliveryStatus(
   providerMessageId: string,
   status: NotificationStatus,
   failureReason?: string,
-): Promise<void> {
+): Promise<DeliveryStatusOutcome> {
   try {
-    await prisma.notificationLog.updateMany({
+    const log = await prisma.notificationLog.findFirst({
       where: { providerMessageId },
+      select: { id: true, status: true },
+    });
+
+    if (!log) {
+      // Message we never recorded — another environment sharing this WhatsApp
+      // number, or a log row deleted since. Not an error, but worth seeing.
+      console.warn(
+        JSON.stringify({ scope: 'notification', event: 'WEBHOOK_STATUS', providerMessageId, outcome: 'unknown' }),
+      );
+      return 'unknown';
+    }
+
+    if (STATUS_RANK[status] <= STATUS_RANK[log.status]) {
+      return 'duplicate';
+    }
+
+    await prisma.notificationLog.update({
+      where: { id: log.id },
       data: { status, ...(failureReason ? { failureReason } : {}) },
     });
+
+    console.info(
+      JSON.stringify({
+        scope: 'notification',
+        event: 'WEBHOOK_STATUS',
+        providerMessageId,
+        from: log.status,
+        to: status,
+        ...(failureReason ? { failureReason } : {}),
+      }),
+    );
+    return 'updated';
   } catch (error) {
     console.error(
-      JSON.stringify({ scope: 'notification', event: 'WEBHOOK_STATUS', providerMessageId, error: String(error) }),
+      JSON.stringify({
+        scope: 'notification',
+        event: 'WEBHOOK_STATUS',
+        providerMessageId,
+        outcome: 'error',
+        error: error instanceof Error ? error.message : String(error),
+      }),
     );
+    return 'error';
   }
 }

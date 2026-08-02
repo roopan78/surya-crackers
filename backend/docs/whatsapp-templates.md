@@ -112,3 +112,22 @@ In **WhatsApp Manager → Configuration → Webhooks**, set:
 
 Delivery receipts then move each `NotificationLog` row through
 SENT → DELIVERED → READ (or FAILED with the reason).
+
+### Security
+
+`POST /api/webhooks/whatsapp` verifies Meta's **X-Hub-Signature-256** header —
+an HMAC-SHA256 of the raw request body keyed with `WHATSAPP_APP_SECRET`
+(App Dashboard → Settings → Basic → App Secret). Set it alongside the other
+WhatsApp variables; while it is empty the check is skipped with a logged
+warning so the endpoint can be registered before the secret is deployed, and
+once it is set an absent or wrong signature is rejected with 403 before any
+database work happens.
+
+### Idempotency
+
+Meta retries webhook batches and does not guarantee ordering. Statuses are
+ranked (SENT < DELIVERED < READ < FAILED) and only applied when they move a row
+forward, so a replayed batch or a late `delivered` arriving after `read` is a
+silent no-op rather than a status downgrade. Unknown message ids and malformed
+payloads are logged and answered with 200 — returning an error would make Meta
+retry the same batch indefinitely.

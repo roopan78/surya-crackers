@@ -32,6 +32,10 @@ const envSchema = z.object({
   WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().default(''),
   // Shared secret echoed back during Meta's webhook subscription handshake.
   WHATSAPP_VERIFY_TOKEN: z.string().default(''),
+  // Meta App Secret — used to verify the X-Hub-Signature-256 header on incoming
+  // webhooks. Leave empty only during initial setup: signature checking is
+  // enforced strictly as soon as a value is present.
+  WHATSAPP_APP_SECRET: z.string().default(''),
   // Names of the Meta-approved message templates (not the message bodies).
   WHATSAPP_TEMPLATE_ORDER_SUCCESS: z.string().default('order_confirmation'),
   WHATSAPP_TEMPLATE_ORDER_FAILED: z.string().default('order_failed'),
