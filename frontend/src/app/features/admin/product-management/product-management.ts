@@ -1,18 +1,27 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, Pencil, Trash2, Plus, X, Star, Search } from 'lucide-angular';
+import { LucideAngularModule, Pencil, Trash2, Plus, X, Star, Search, Download } from 'lucide-angular';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
-import { Product } from '../../../core/models';
+import { Product, ProductImportResult } from '../../../core/models';
 import { ImageUploadField } from '../../../shared/components/image-upload-field/image-upload-field';
 import { ToggleSwitch } from '../../../shared/components/toggle-switch/toggle-switch';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { ToastService } from '../../../shared/services/toast.service';
 import { slugify } from '../../../shared/utils/slugify.util';
+import { ProductImportModal } from './product-import-modal/product-import-modal';
 
 @Component({
   selector: 'app-product-management',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, LucideAngularModule, ImageUploadField, ToggleSwitch, ConfirmModal],
+  imports: [
+    ReactiveFormsModule,
+    FormsModule,
+    LucideAngularModule,
+    ImageUploadField,
+    ToggleSwitch,
+    ConfirmModal,
+    ProductImportModal,
+  ],
   templateUrl: './product-management.html',
 })
 export class ProductManagement implements OnInit {
@@ -27,10 +36,13 @@ export class ProductManagement implements OnInit {
   readonly StarIcon = Star;
   readonly SearchIcon = Search;
 
+  readonly DownloadIcon = Download;
+
   readonly editingId = signal<string | null>(null);
   readonly saving = signal(false);
   readonly searchTerm = signal('');
   readonly pendingDelete = signal<Product | null>(null);
+  readonly importOpen = signal(false);
 
   readonly filteredProducts = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
@@ -162,5 +174,12 @@ export class ProductManagement implements OnInit {
 
   categoryName(slug: string): string {
     return this.adminCatalogService.categories().find((c) => c.slug === slug)?.name ?? slug;
+  }
+
+  onImportCompleted(result: ProductImportResult): void {
+    // The service already reloads products/categories and refreshes the storefront.
+    this.toastService.success(
+      `Import complete — ${result.createdProducts} created, ${result.updatedProducts} updated.`,
+    );
   }
 }

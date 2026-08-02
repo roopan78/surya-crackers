@@ -2,7 +2,15 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiSuccess, Category, Product, CarouselBanner, FooterConfig } from '../models';
+import {
+  ApiSuccess,
+  Category,
+  Product,
+  CarouselBanner,
+  FooterConfig,
+  ProductImportPreview,
+  ProductImportResult,
+} from '../models';
 import { CatalogService } from './catalog.service';
 
 export interface CategoryWritePayload {
@@ -113,6 +121,37 @@ export class AdminCatalogService {
       map(() => undefined),
       tap(() => this.afterMutation(this.loadProducts.bind(this))),
     );
+  }
+
+  // ---------- Bulk product import (Excel) ----------
+  downloadImportTemplate(): Observable<Blob> {
+    return this.http.get(`${ADMIN_BASE}/products/import/template`, { responseType: 'blob' });
+  }
+
+  /** Analysis only — the backend writes nothing for a preview. */
+  previewProductImport(file: File): Observable<ProductImportPreview> {
+    return this.http
+      .post<ApiSuccess<ProductImportPreview>>(`${ADMIN_BASE}/products/import/preview`, this.toFileForm(file))
+      .pipe(map((res) => res.data));
+  }
+
+  importProducts(file: File): Observable<ProductImportResult> {
+    return this.http.post<ApiSuccess<ProductImportResult>>(`${ADMIN_BASE}/products/import`, this.toFileForm(file)).pipe(
+      map((res) => res.data),
+      // Imports touch categories too, so reload both admin lists.
+      tap(() =>
+        this.afterMutation(() => {
+          this.loadProducts();
+          this.loadCategories();
+        }),
+      ),
+    );
+  }
+
+  private toFileForm(file: File): FormData {
+    const form = new FormData();
+    form.append('file', file);
+    return form;
   }
 
   // ---------- Carousel Banners ----------

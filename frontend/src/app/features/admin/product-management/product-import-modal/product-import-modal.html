@@ -1,0 +1,284 @@
+<div class="fixed inset-0 z-[90] flex items-center justify-center bg-brand-charcoal/40 p-4 backdrop-blur-sm" (click)="close()">
+  <div class="glass-card-solid flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 border-b border-black/5 p-6 pb-4">
+      <div>
+        <h2 class="text-lg font-bold text-brand-charcoal">Bulk Product Import</h2>
+        <p class="mt-1 text-xs text-brand-ink-secondary">
+          Import multiple products from an Excel spreadsheet. Missing categories will be created automatically,
+          existing products will be updated using SKU, and new products will be created.
+        </p>
+      </div>
+      @if (canClose()) {
+        <button type="button" class="shrink-0 text-brand-ink-muted transition hover:text-brand-charcoal" (click)="close()" aria-label="Close import dialog">
+          <lucide-icon [img]="XIcon" class="h-5 w-5" />
+        </button>
+      }
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 pt-4">
+      @switch (step()) {
+        <!-- ============ STEP: UPLOAD ============ -->
+        @case ('upload') {
+          <!-- Drop zone -->
+          <div
+            class="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed p-8 text-center transition"
+            [class.border-brand-red]="dragging()"
+            [class.bg-brand-red-soft/30]="dragging()"
+            [class.border-black/15]="!dragging()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)"
+          >
+            @if (file(); as selected) {
+              <lucide-icon [img]="FileSpreadsheetIcon" class="h-8 w-8 text-emerald-600" />
+              <div>
+                <p class="text-sm font-semibold text-brand-charcoal">{{ selected.name }}</p>
+                <p class="mt-0.5 text-xs text-brand-ink-muted">{{ fileSizeLabel() }}</p>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" class="btn-secondary !px-3 !py-1.5 text-xs" (click)="fileInput.click()">Replace File</button>
+                <button type="button" class="btn-secondary !px-3 !py-1.5 text-xs !text-brand-red" (click)="removeFile()">Remove File</button>
+              </div>
+            } @else {
+              <lucide-icon [img]="UploadIcon" class="h-8 w-8 text-brand-ink-muted" />
+              <p class="text-sm font-semibold text-brand-charcoal">Drag &amp; drop your Excel file here</p>
+              <p class="text-xs text-brand-ink-muted">.xlsx or .xls · up to 5 MB</p>
+              <button type="button" class="btn-secondary !px-4 !py-2 text-sm" (click)="fileInput.click()">Choose Excel File</button>
+            }
+            <input #fileInput type="file" accept=".xlsx,.xls" class="hidden" (change)="onFileInput($event)" />
+          </div>
+          @if (fileError(); as error) {
+            <p class="field-error mt-2">{{ error }}</p>
+          }
+
+          <!-- Template download -->
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-brand-mist/60 p-4">
+            <p class="text-xs text-brand-ink-secondary">Use this template to ensure your products are imported correctly.</p>
+            <button type="button" class="btn-secondary !px-3 !py-2 text-xs" (click)="downloadTemplate()">
+              <lucide-icon [img]="DownloadIcon" class="h-3.5 w-3.5" />
+              Download Sample Excel Template
+            </button>
+          </div>
+
+          <!-- Instructions -->
+          <div class="mt-4 rounded-2xl border border-black/5 p-4">
+            <p class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-ink-secondary">
+              <lucide-icon [img]="InfoIcon" class="h-3.5 w-3.5" />
+              Before You Import
+            </p>
+            <ul class="mt-2 list-disc space-y-1 pl-5 text-xs text-brand-ink-secondary">
+              <li>Use the provided sample template — the first worksheet is imported and column headers must not be renamed.</li>
+              <li>Each row is one product; empty rows are ignored automatically.</li>
+              <li><span class="font-semibold">SKU, Category, Product Name and Price are required.</span> Everything else is optional.</li>
+              <li>SKU is the unique identifier: existing SKUs update products, new SKUs create them.</li>
+              <li>Categories are matched case-insensitively; missing categories are created automatically.</li>
+              <li>Featured/Active accept TRUE/FALSE, YES/NO or 1/0.</li>
+              <li>Invalid rows never stop the import — they are skipped and reported.</li>
+            </ul>
+          </div>
+
+          <!-- Warning -->
+          <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <p class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-700">
+              <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5" />
+              Important
+            </p>
+            <ul class="mt-2 list-disc space-y-1 pl-5 text-xs text-amber-800">
+              <li>Existing products are updated using SKU — a blank optional cell keeps the current value.</li>
+              <li>New SKUs create new products; categories are created automatically.</li>
+              <li>Invalid rows are skipped. Large imports may take several seconds.</li>
+            </ul>
+          </div>
+
+          @if (requestError(); as error) {
+            <p class="field-error mt-3" role="alert">{{ error }}</p>
+          }
+
+          <div class="mt-5 flex justify-end gap-3">
+            <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
+            <button type="button" class="btn-primary" [disabled]="!file() || previewing()" (click)="runPreview()">
+              {{ previewing() ? 'Analyzing…' : 'Preview Import' }}
+            </button>
+          </div>
+        }
+
+        <!-- ============ STEP: PREVIEW ============ -->
+        @case ('preview') {
+          @if (preview(); as summary) {
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div class="rounded-2xl bg-brand-mist/60 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-ink-muted">Total Rows</p>
+                <p class="font-display text-2xl font-extrabold text-brand-charcoal">{{ summary.totalRows | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-emerald-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Products To Create</p>
+                <p class="font-display text-2xl font-extrabold text-emerald-700">{{ summary.rowsToCreate | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-sky-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-sky-700">Products To Update</p>
+                <p class="font-display text-2xl font-extrabold text-sky-700">{{ summary.rowsToUpdate | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-brand-gold-soft p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-gold-hover">Categories To Create</p>
+                <p class="font-display text-2xl font-extrabold text-brand-gold-hover">{{ summary.categoriesToCreate | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-amber-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Skipped Rows</p>
+                <p class="font-display text-2xl font-extrabold text-amber-700">{{ summary.skippedRows | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-brand-mist/60 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-ink-muted">Rows Ready</p>
+                <p class="font-display text-2xl font-extrabold text-brand-charcoal">{{ summary.validRows | number }}</p>
+              </div>
+            </div>
+
+            @if (!canConfirmImport()) {
+              <p class="field-error mt-3">No valid rows were found — fix the reported issues and upload again.</p>
+            }
+
+            <!-- Row report -->
+            <div class="mt-4 max-h-64 overflow-y-auto rounded-2xl border border-black/5">
+              <table class="w-full text-left text-xs">
+                <thead class="sticky top-0 bg-white">
+                  <tr class="text-[10px] uppercase tracking-wide text-brand-ink-muted">
+                    <th class="px-3 py-2 font-semibold">Row</th>
+                    <th class="px-3 py-2 font-semibold">SKU</th>
+                    <th class="px-3 py-2 font-semibold">Product Name</th>
+                    <th class="px-3 py-2 font-semibold">Status</th>
+                    <th class="px-3 py-2 font-semibold">Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of summary.errors; track row.row) {
+                    <tr class="border-t border-black/5">
+                      <td class="px-3 py-2 text-brand-ink-muted">{{ row.row }}</td>
+                      <td class="px-3 py-2 font-semibold text-brand-charcoal">{{ row.sku || '—' }}</td>
+                      <td class="px-3 py-2 text-brand-ink-secondary">{{ row.productName || '—' }}</td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="badge-status"
+                          [class.bg-emerald-50]="row.status === 'CREATE'"
+                          [class.text-emerald-700]="row.status === 'CREATE'"
+                          [class.bg-sky-50]="row.status === 'UPDATE'"
+                          [class.text-sky-700]="row.status === 'UPDATE'"
+                          [class.bg-amber-50]="row.status === 'SKIPPED'"
+                          [class.text-amber-700]="row.status === 'SKIPPED'"
+                        >
+                          {{ row.status === 'CREATE' ? 'Create' : row.status === 'UPDATE' ? 'Update' : 'Skipped' }}
+                        </span>
+                      </td>
+                      <td class="px-3 py-2 text-brand-ink-secondary">{{ row.reason || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (requestError(); as error) {
+              <p class="field-error mt-3" role="alert">{{ error }}</p>
+            }
+
+            <div class="mt-5 flex justify-end gap-3">
+              <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
+              <button type="button" class="btn-secondary" (click)="backToUpload()">Back</button>
+              <button type="button" class="btn-primary" [disabled]="!canConfirmImport()" (click)="confirmImport()">
+                Confirm Import
+              </button>
+            </div>
+          }
+        }
+
+        <!-- ============ STEP: IMPORTING ============ -->
+        @case ('importing') {
+          <div class="flex flex-col items-center gap-4 py-10 text-center">
+            <lucide-icon [img]="LoaderCircleIcon" class="h-10 w-10 animate-spin text-brand-red" />
+            <div class="flex flex-col gap-1.5">
+              @for (stage of progressStages; track stage; let i = $index) {
+                <p
+                  class="text-sm transition"
+                  [class.font-semibold]="i === progressIndex()"
+                  [class.text-brand-charcoal]="i === progressIndex()"
+                  [class.text-brand-ink-muted]="i !== progressIndex()"
+                  [class.opacity-40]="i > progressIndex()"
+                >
+                  {{ stage }}
+                </p>
+              }
+            </div>
+            <p class="text-xs text-brand-ink-muted">Please keep this window open until the import finishes.</p>
+          </div>
+        }
+
+        <!-- ============ STEP: RESULT ============ -->
+        @case ('result') {
+          @if (result(); as summary) {
+            <div class="flex flex-col items-center text-center">
+              <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <lucide-icon [img]="CircleCheckIcon" class="h-7 w-7" />
+              </div>
+              <h3 class="mt-3 text-lg font-bold text-brand-charcoal">Import Completed Successfully</h3>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div class="rounded-2xl bg-brand-mist/60 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-ink-muted">Rows Processed</p>
+                <p class="font-display text-2xl font-extrabold text-brand-charcoal">{{ summary.processedRows | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-emerald-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Products Created</p>
+                <p class="font-display text-2xl font-extrabold text-emerald-700">{{ summary.createdProducts | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-sky-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-sky-700">Products Updated</p>
+                <p class="font-display text-2xl font-extrabold text-sky-700">{{ summary.updatedProducts | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-brand-gold-soft p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-gold-hover">Categories Created</p>
+                <p class="font-display text-2xl font-extrabold text-brand-gold-hover">{{ summary.createdCategories | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-amber-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Rows Skipped</p>
+                <p class="font-display text-2xl font-extrabold text-amber-700">{{ summary.skippedRows | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-brand-mist/60 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-ink-muted">Total Rows</p>
+                <p class="font-display text-2xl font-extrabold text-brand-charcoal">{{ summary.totalRows | number }}</p>
+              </div>
+            </div>
+
+            @if (summary.errors.length > 0) {
+              <div class="mt-4 max-h-48 overflow-y-auto rounded-2xl border border-black/5">
+                <table class="w-full text-left text-xs">
+                  <thead class="sticky top-0 bg-white">
+                    <tr class="text-[10px] uppercase tracking-wide text-brand-ink-muted">
+                      <th class="px-3 py-2 font-semibold">Row</th>
+                      <th class="px-3 py-2 font-semibold">SKU</th>
+                      <th class="px-3 py-2 font-semibold">Product</th>
+                      <th class="px-3 py-2 font-semibold">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of summary.errors; track row.row) {
+                      <tr class="border-t border-black/5">
+                        <td class="px-3 py-2 text-brand-ink-muted">{{ row.row }}</td>
+                        <td class="px-3 py-2 font-semibold text-brand-charcoal">{{ row.sku || '—' }}</td>
+                        <td class="px-3 py-2 text-brand-ink-secondary">{{ row.productName || '—' }}</td>
+                        <td class="px-3 py-2 text-brand-ink-secondary">{{ row.reason }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            <div class="mt-5 flex justify-end gap-3">
+              <button type="button" class="btn-secondary" (click)="importAnotherFile()">Import Another File</button>
+              <button type="button" class="btn-primary" (click)="close()">Done</button>
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+</div>

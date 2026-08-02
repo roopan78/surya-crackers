@@ -1,6 +1,14 @@
 <div>
-  <h1 class="section-heading">Product Addition Panel</h1>
-  <p class="mt-1 text-sm text-brand-ink-secondary">Add new inventory items or edit existing ones.</p>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="section-heading">Product Addition Panel</h1>
+      <p class="mt-1 text-sm text-brand-ink-secondary">Add new inventory items or edit existing ones.</p>
+    </div>
+    <button type="button" class="btn-secondary" (click)="importOpen.set(true)">
+      <lucide-icon [img]="DownloadIcon" class="h-4 w-4" />
+      Import Products
+    </button>
+  </div>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-3">
     <!-- Form -->
@@ -182,5 +190,9 @@
       (confirmed)="confirmDelete()"
       (cancelled)="pendingDelete.set(null)"
     />
+  }
+
+  @if (importOpen()) {
+    <app-product-import-modal (closed)="importOpen.set(false)" (completed)="onImportCompleted($event)" />
   }
 </div>
