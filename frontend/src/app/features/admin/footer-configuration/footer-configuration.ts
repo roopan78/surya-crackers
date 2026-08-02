@@ -27,6 +27,9 @@ export class FooterConfiguration implements OnInit {
     licenseNumber: ['', [Validators.required]],
     phone: ['', [Validators.required]],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
+    // Optional — leave blank to hide the icon in the storefront footer.
+    instagramUrl: ['', [Validators.pattern(/^https:\/\/.+/)]],
+    facebookUrl: ['', [Validators.pattern(/^https:\/\/.+/)]],
     safetyDisclaimer: ['', [Validators.required, Validators.minLength(20)]],
   });
 
@@ -34,7 +37,9 @@ export class FooterConfiguration implements OnInit {
     this.adminCatalogService.getFooterConfig().subscribe({
       next: (config) => {
         if (config) {
-          this.form.setValue(config);
+          // patchValue (not setValue) so a config payload missing newly added
+          // optional fields can never throw and blank the whole form.
+          this.form.patchValue(config);
         }
       },
       error: () => this.toastService.error('Could not load the current footer configuration.'),

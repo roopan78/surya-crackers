@@ -45,6 +45,23 @@
         }
       </div>
 
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="instagram-url">Instagram URL (optional)</label>
+          <input id="instagram-url" type="url" formControlName="instagramUrl" class="input-field" placeholder="https://instagram.com/yourshop" />
+          @if (form.controls.instagramUrl.invalid && form.controls.instagramUrl.touched) {
+            <p class="field-error">Enter a full https:// link, or leave blank to hide the icon.</p>
+          }
+        </div>
+        <div>
+          <label class="field-label" for="facebook-url">Facebook URL (optional)</label>
+          <input id="facebook-url" type="url" formControlName="facebookUrl" class="input-field" placeholder="https://facebook.com/yourshop" />
+          @if (form.controls.facebookUrl.invalid && form.controls.facebookUrl.touched) {
+            <p class="field-error">Enter a full https:// link, or leave blank to hide the icon.</p>
+          }
+        </div>
+      </div>
+
       <div>
         <label class="field-label" for="safety-disclaimer">Safety Disclaimer</label>
         <textarea id="safety-disclaimer" rows="4" formControlName="safetyDisclaimer" class="input-field resize-none"></textarea>

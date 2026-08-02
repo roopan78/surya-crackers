@@ -10,6 +10,8 @@ const EMPTY_FOOTER_CONFIG: FooterConfig = {
   licenseNumber: '',
   phone: '',
   whatsappNumber: '',
+  instagramUrl: '',
+  facebookUrl: '',
   safetyDisclaimer: '',
 };
 

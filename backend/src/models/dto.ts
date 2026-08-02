@@ -63,6 +63,8 @@ export function toFooterDTO(footer: FooterConfig) {
     licenseNumber: footer.licenseNumber,
     phone: footer.phone,
     whatsappNumber: footer.whatsappNumber,
+    instagramUrl: footer.instagramUrl,
+    facebookUrl: footer.facebookUrl,
     safetyDisclaimer: footer.safetyDisclaimer,
   };
 }

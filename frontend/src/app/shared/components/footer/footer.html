@@ -17,16 +17,23 @@
           {{ catalogService.footerConfig().phone }}
         </p>
 
+        <!-- Social links come from the admin footer configuration; unset ones are hidden -->
         <div class="mt-5 flex items-center gap-2">
-          <a [href]="whatsappLink" target="_blank" rel="noopener noreferrer" class="btn-ghost !p-2.5 text-emerald-600 hover:bg-emerald-50" aria-label="WhatsApp">
-            <lucide-icon [img]="MessageCircleIcon" class="h-4.5 w-4.5" />
-          </a>
-          <a href="#" class="btn-ghost !p-2.5" aria-label="Instagram">
-            <lucide-icon [img]="InstagramIcon" class="h-4.5 w-4.5" />
-          </a>
-          <a href="#" class="btn-ghost !p-2.5" aria-label="Facebook">
-            <lucide-icon [img]="FacebookIcon" class="h-4.5 w-4.5" />
-          </a>
+          @if (catalogService.footerConfig().whatsappNumber) {
+            <a [href]="whatsappLink" target="_blank" rel="noopener noreferrer" class="btn-ghost !p-2.5 text-emerald-600 hover:bg-emerald-50" aria-label="WhatsApp">
+              <lucide-icon [img]="MessageCircleIcon" class="h-4.5 w-4.5" />
+            </a>
+          }
+          @if (catalogService.footerConfig().instagramUrl; as instagramUrl) {
+            <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" class="btn-ghost !p-2.5" aria-label="Instagram">
+              <lucide-icon [img]="InstagramIcon" class="h-4.5 w-4.5" />
+            </a>
+          }
+          @if (catalogService.footerConfig().facebookUrl; as facebookUrl) {
+            <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="btn-ghost !p-2.5" aria-label="Facebook">
+              <lucide-icon [img]="FacebookIcon" class="h-4.5 w-4.5" />
+            </a>
+          }
         </div>
       </div>
 

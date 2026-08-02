@@ -118,6 +118,9 @@ model FooterConfig {
   licenseNumber    String
   phone            String
   whatsappNumber   String
+  // Social profile links — empty string means "not configured", the storefront hides the icon
+  instagramUrl     String   @default("")
+  facebookUrl      String   @default("")
   safetyDisclaimer String
   updatedAt        DateTime @updatedAt
 
