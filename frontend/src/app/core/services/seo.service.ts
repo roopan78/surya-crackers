@@ -13,15 +13,21 @@ export interface SeoPageMeta {
   path?: string;
   /** Absolute image URL for social cards; falls back to the brand banner. */
   image?: string;
+  /** Accessible description of the social image; defaults to the page title. */
+  imageAlt?: string;
+  /** Only set when the actual pixel dimensions are known — wrong values are worse than none. */
+  imageWidth?: number;
+  imageHeight?: number;
   type?: 'website' | 'product';
   /** Defaults to 'index,follow'; pass 'noindex,nofollow' etc. for private pages. */
   robots?: string;
 }
 
 const SITE_NAME = 'Surya Crackers';
-// Placeholder brand card, consistent with the project's placehold.co convention —
-// swap for a real 1200x630 brand banner when one exists.
-const DEFAULT_OG_IMAGE = 'https://placehold.co/1200x630/E63946/FFFFFF/png?text=Surya+Crackers';
+// Self-hosted brand card (public/og-default.png, 1200x630).
+const DEFAULT_OG_IMAGE_PATH = '/og-default.png';
+const DEFAULT_OG_WIDTH = 1200;
+const DEFAULT_OG_HEIGHT = 630;
 
 /**
  * Single home for per-page SEO: title, description/keywords/robots metas,
@@ -38,7 +44,11 @@ export class SeoService {
 
   update(page: SeoPageMeta): void {
     const url = `${environment.siteUrl}${page.path ?? '/'}`;
-    const image = page.image ?? DEFAULT_OG_IMAGE;
+    const usingDefaultImage = !page.image;
+    const image = page.image ?? `${environment.siteUrl}${DEFAULT_OG_IMAGE_PATH}`;
+    const imageAlt = page.imageAlt ?? page.title;
+    const imageWidth = page.imageWidth ?? (usingDefaultImage ? DEFAULT_OG_WIDTH : undefined);
+    const imageHeight = page.imageHeight ?? (usingDefaultImage ? DEFAULT_OG_HEIGHT : undefined);
 
     this.title.setTitle(page.title);
     this.meta.updateTag({ name: 'description', content: page.description });
@@ -55,6 +65,14 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:title', content: page.title });
     this.meta.updateTag({ property: 'og:description', content: page.description });
     this.meta.updateTag({ property: 'og:image', content: image });
+    this.meta.updateTag({ property: 'og:image:alt', content: imageAlt });
+    if (imageWidth && imageHeight) {
+      this.meta.updateTag({ property: 'og:image:width', content: String(imageWidth) });
+      this.meta.updateTag({ property: 'og:image:height', content: String(imageHeight) });
+    } else {
+      this.meta.removeTag("property='og:image:width'");
+      this.meta.removeTag("property='og:image:height'");
+    }
     this.meta.updateTag({ property: 'og:url', content: url });
     this.meta.updateTag({ property: 'og:type', content: page.type ?? 'website' });
 

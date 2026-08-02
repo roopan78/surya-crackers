@@ -113,13 +113,67 @@ export class Home {
   readonly ALL_SLUG = ALL_SLUG;
 
   constructor() {
-    this.seoService.update({
-      title: 'Buy Crackers Online - Sivakasi Fireworks | Surya Crackers',
-      description:
-        'Buy premium Sivakasi crackers and fireworks online from Surya Crackers. Browse quality products and order online today.',
-      keywords: 'crackers online, fireworks, sivakasi crackers, buy crackers online, festival fireworks',
-      path: '/',
+    // SEO: default homepage metadata, switching to a noindexed search-results
+    // variant whenever ?q= is present. Canonical always stays the clean
+    // homepage URL (query parameters are deliberately dropped), and the first
+    // hero banner doubles as the social-share image once it loads.
+    effect(() => {
+      const query = this.searchQuery();
+      const hero = this.banners()[0];
+      const heroImage = hero
+        ? { image: hero.imageUrl, imageAlt: hero.title }
+        : {};
+
+      if (query) {
+        const label = query.length > 20 ? `${query.slice(0, 20)}…` : query;
+        this.seoService.update({
+          title: `Search Results for "${label}" | Surya Crackers`,
+          description: `Browse search results for ${label} at Surya Crackers.`,
+          path: '/',
+          robots: 'noindex,follow',
+          ...heroImage,
+        });
+      } else {
+        this.seoService.update({
+          title: 'Buy Crackers Online - Sivakasi Fireworks | Surya Crackers',
+          description:
+            'Buy premium Sivakasi crackers and fireworks online from Surya Crackers. Browse quality products and order online today.',
+          keywords: 'crackers online, fireworks, sivakasi crackers, buy crackers online, festival fireworks',
+          path: '/',
+          ...heroImage,
+        });
+      }
     });
+
+    // LocalBusiness structured data from the live footer configuration — the
+    // admin-editable source of truth for name/address/phone/social links.
+    // Opening hours and geo coordinates are omitted: no real data exists for
+    // them, and fabricated facts are worse than absent ones.
+    effect(() => {
+      const footer = this.catalogService.footerConfig();
+      if (!footer.shopName) {
+        return;
+      }
+      const sameAs = [footer.instagramUrl, footer.facebookUrl].filter(Boolean);
+      this.seoService.setJsonLd('local-business', {
+        '@context': 'https://schema.org',
+        '@type': 'LocalBusiness',
+        name: footer.shopName,
+        url: 'https://suryacrackers.shop',
+        logo: 'https://suryacrackers.shop/icons/icon-512.png',
+        image: 'https://suryacrackers.shop/og-default.png',
+        telephone: footer.phone,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: footer.address,
+          addressCountry: 'IN',
+        },
+        areaServed: 'Tamil Nadu',
+        priceRange: '₹₹',
+        ...(sameAs.length > 0 ? { sameAs } : {}),
+      });
+    });
+
     this.seoService.setJsonLd('organization', {
       '@context': 'https://schema.org',
       '@type': 'Organization',

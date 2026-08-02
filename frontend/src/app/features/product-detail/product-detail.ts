@@ -78,9 +78,12 @@ export class ProductDetail implements OnDestroy {
 
     // Product-to-product navigation reuses this component, so the router alone
     // won't reset the viewport — scroll to top whenever the route param changes.
+    // (Guarded for SSR readiness: there is no viewport to scroll on the server.)
     effect(() => {
       this.productKey();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
 
     // Per-product SEO: metadata + Product/Breadcrumb structured data. Re-runs
@@ -104,14 +107,19 @@ export class ProductDetail implements OnDestroy {
           .join(', '),
         path,
         image: product.imageUrl || undefined,
+        imageAlt: product.name,
         type: 'product',
       });
+
+      // Offers need a concrete expiry; roll it forward ~30 days on each render.
+      const priceValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
       this.seoService.setJsonLd('product', {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
         sku: product.sku,
+        url: `https://suryacrackers.shop${path}`,
         ...(product.imageUrl ? { image: product.imageUrl } : {}),
         description: `${product.name} (${product.boxQuantity}) from Surya Crackers.`,
         brand: { '@type': 'Brand', name: 'Surya Crackers' },
@@ -120,7 +128,11 @@ export class ProductDetail implements OnDestroy {
           url: `https://suryacrackers.shop${path}`,
           price: product.price,
           priceCurrency: 'INR',
-          ...(product.stockCount > 0 ? { availability: 'https://schema.org/InStock' } : {}),
+          priceValidUntil,
+          itemCondition: 'https://schema.org/NewCondition',
+          availability:
+            product.stockCount > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: { '@type': 'Organization', name: 'Surya Crackers' },
         },
       });
 

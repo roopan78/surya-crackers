@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { env } from './config/env';
 import routes from './routes';
-import { serveSitemap } from './controllers/sitemap.controller';
+import { serveImageSitemap, serveMerchantFeed, serveSitemap } from './controllers/sitemap.controller';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 export function createApp() {
@@ -29,8 +29,10 @@ export function createApp() {
     res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Not under /api — the storefront domain rewrites /sitemap.xml straight here.
+  // Not under /api — the storefront domain rewrites these straight here.
   app.get('/sitemap.xml', serveSitemap);
+  app.get('/image-sitemap.xml', serveImageSitemap);
+  app.get('/feed.xml', serveMerchantFeed);
 
   app.use('/api', routes);
 

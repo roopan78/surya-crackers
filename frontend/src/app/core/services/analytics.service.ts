@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -23,12 +24,15 @@ declare global {
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
   private readonly router = inject(Router);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private initialized = false;
 
   init(): void {
     const measurementId = environment.googleAnalyticsId;
-    if (!measurementId || this.initialized) {
+    // SSR-safe: analytics is browser-only by definition — a server render must
+    // neither inject the script nor report page views.
+    if (!this.isBrowser || !measurementId || this.initialized) {
       return;
     }
     this.initialized = true;

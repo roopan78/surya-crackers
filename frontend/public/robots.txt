@@ -8,3 +8,4 @@ Disallow: /account
 Disallow: /order-confirmation/
 
 Sitemap: https://suryacrackers.shop/sitemap.xml
+Sitemap: https://suryacrackers.shop/image-sitemap.xml

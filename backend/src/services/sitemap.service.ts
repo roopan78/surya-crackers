@@ -77,6 +77,58 @@ function renderXml(entries: SitemapEntry[]): string {
   ].join('\n');
 }
 
+// ---------- Image sitemap ----------
+
+let cachedImageXml: string | null = null;
+let cachedImageAt = 0;
+
+/**
+ * /image-sitemap.xml — every active product's images, attached to the product
+ * page URL per Google's image sitemap extension.
+ */
+export async function getImageSitemapXml(): Promise<string> {
+  if (cachedImageXml && Date.now() - cachedImageAt < CACHE_TTL_MS) {
+    return cachedImageXml;
+  }
+
+  const products = await prisma.product.findMany({
+    where: { isActive: true, imageUrls: { isEmpty: false } },
+    select: { slug: true, name: true, boxQuantity: true, imageUrls: true },
+  });
+
+  const urls = products
+    .map((product) => {
+      const images = product.imageUrls
+        .map((imageUrl) =>
+          [
+            '    <image:image>',
+            `      <image:loc>${escapeXml(imageUrl)}</image:loc>`,
+            `      <image:title>${escapeXml(product.name)}</image:title>`,
+            `      <image:caption>${escapeXml(`${product.name} (${product.boxQuantity}) — Surya Crackers`)}</image:caption>`,
+            '    </image:image>',
+          ].join('\n'),
+        )
+        .join('\n');
+      return [
+        '  <url>',
+        `    <loc>${escapeXml(`${env.PUBLIC_SITE_URL}/product/${product.slug}`)}</loc>`,
+        images,
+        '  </url>',
+      ].join('\n');
+    })
+    .join('\n');
+
+  cachedImageXml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    urls,
+    '</urlset>',
+    '',
+  ].join('\n');
+  cachedImageAt = Date.now();
+  return cachedImageXml;
+}
+
 export async function getSitemapXml(): Promise<string> {
   if (cachedXml && Date.now() - cachedAt < CACHE_TTL_MS) {
     return cachedXml;

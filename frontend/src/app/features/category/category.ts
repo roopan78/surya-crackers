@@ -61,7 +61,7 @@ export class CategoryPage implements OnDestroy {
         description: `Browse premium ${category.name.toLowerCase()} online from Surya Crackers. Shop quality Sivakasi fireworks today.`,
         keywords: `${category.name.toLowerCase()}, ${category.name.toLowerCase()} online, sivakasi crackers, buy crackers online`,
         path,
-        ...(category.image ? { image: category.image } : {}),
+        ...(category.image ? { image: category.image, imageAlt: category.name } : {}),
       });
 
       this.seoService.setJsonLd('collection', {

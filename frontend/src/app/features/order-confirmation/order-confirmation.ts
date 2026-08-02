@@ -49,7 +49,8 @@ export class OrderConfirmation implements OnInit {
   // Passed via router navigation state from checkout — not persisted, so a
   // hard refresh of this page loses the detail (order number itself still
   // shows from the URL). UPI orders recover their state from /upi-details.
-  private readonly state = (history.state ?? {}) as ConfirmationState;
+  // (SSR-safe: history only exists in the browser; server renders see {}.)
+  private readonly state = (typeof history !== 'undefined' ? (history.state ?? {}) : {}) as ConfirmationState;
 
   readonly estimatedTotal = this.state.estimatedTotal ?? null;
   readonly pickupDate = this.state.pickupDate ?? null;
