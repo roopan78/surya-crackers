@@ -1,12 +1,13 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideAngularModule, ShieldAlert, PackageCheck, ShoppingCart, ArrowLeft } from 'lucide-angular';
+import { LucideAngularModule, ShieldAlert, PackageCheck, ShoppingCart } from 'lucide-angular';
 import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { RecentlyViewedService } from '../../core/services/recently-viewed.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product } from '../../core/models';
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { QuantityStepper } from '../../shared/components/quantity-stepper/quantity-stepper';
@@ -20,11 +21,12 @@ const SUGGESTION_LIMIT = 4;
   imports: [RouterLink, LucideAngularModule, ProductCard, QuantityStepper, YoutubeEmbedPipe, TitleCasePipe],
   templateUrl: './product-detail.html',
 })
-export class ProductDetail {
+export class ProductDetail implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly catalogService = inject(CatalogService);
   private readonly cartService = inject(CartService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
+  private readonly seoService = inject(SeoService);
 
   /** Route param carries a slug for new links and an id for older ones. */
   private readonly productKey = toSignal(
@@ -35,6 +37,11 @@ export class ProductDetail {
   readonly product = computed(() => this.catalogService.getProductByIdOrSlug(this.productKey()));
   readonly boxesToAdd = signal(1);
   readonly justAdded = signal(false);
+
+  readonly category = computed(() => {
+    const product = this.product();
+    return product ? this.catalogService.categories().find((c) => c.slug === product.categorySlug) : undefined;
+  });
 
   /** Same-category products first, topped up from the rest of the catalog. */
   readonly relatedProducts = computed<Product[]>(() => {
@@ -75,12 +82,77 @@ export class ProductDetail {
       this.productKey();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // Per-product SEO: metadata + Product/Breadcrumb structured data. Re-runs
+    // when the async catalog resolves and on product-to-product navigation.
+    effect(() => {
+      const product = this.product();
+      if (!product) {
+        return;
+      }
+      const category = this.category();
+      const path = `/product/${product.slug}`;
+
+      this.seoService.update({
+        title:
+          product.name.length <= 32
+            ? `Buy ${product.name} Online | Surya Crackers`
+            : `${product.name} | Surya Crackers`,
+        description: `Buy premium ${product.name} online at the best price from Surya Crackers. Order today.`,
+        keywords: [product.name, category?.name, 'crackers online', 'sivakasi fireworks']
+          .filter(Boolean)
+          .join(', '),
+        path,
+        image: product.imageUrl || undefined,
+        type: 'product',
+      });
+
+      this.seoService.setJsonLd('product', {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        sku: product.sku,
+        ...(product.imageUrl ? { image: product.imageUrl } : {}),
+        description: `${product.name} (${product.boxQuantity}) from Surya Crackers.`,
+        brand: { '@type': 'Brand', name: 'Surya Crackers' },
+        offers: {
+          '@type': 'Offer',
+          url: `https://suryacrackers.shop${path}`,
+          price: product.price,
+          priceCurrency: 'INR',
+          ...(product.stockCount > 0 ? { availability: 'https://schema.org/InStock' } : {}),
+        },
+      });
+
+      this.seoService.setJsonLd('breadcrumb', {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://suryacrackers.shop/' },
+          ...(category
+            ? [
+                {
+                  '@type': 'ListItem',
+                  position: 2,
+                  name: category.name,
+                  item: `https://suryacrackers.shop/category/${category.slug}`,
+                },
+              ]
+            : []),
+          { '@type': 'ListItem', position: category ? 3 : 2, name: product.name },
+        ],
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.seoService.setJsonLd('product', null);
+    this.seoService.setJsonLd('breadcrumb', null);
   }
 
   readonly ShieldAlertIcon = ShieldAlert;
   readonly PackageCheckIcon = PackageCheck;
   readonly ShoppingCartIcon = ShoppingCart;
-  readonly ArrowLeftIcon = ArrowLeft;
 
   incrementBoxesToAdd(): void {
     this.boxesToAdd.update((n) => n + 1);

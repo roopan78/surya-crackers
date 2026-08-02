@@ -13,6 +13,7 @@ import {
   LogOut,
 } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth.service';
+import { SeoService } from '../../../core/services/seo.service';
 
 interface AdminNavItem {
   label: string;
@@ -29,6 +30,15 @@ interface AdminNavItem {
 export class AdminShell {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+
+  constructor() {
+    inject(SeoService).update({
+      title: 'Admin Workspace | Surya Crackers',
+      description: 'Surya Crackers staff administration.',
+      path: '/admin',
+      robots: 'noindex,nofollow',
+    });
+  }
 
   readonly ExternalLinkIcon = ExternalLink;
   readonly LogOutIcon = LogOut;

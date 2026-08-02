@@ -4,9 +4,16 @@
       class="flex transition-transform duration-700 ease-out"
       [style.transform]="'translateX(-' + (activeIndex() * 100) + '%)'"
     >
-      @for (banner of banners(); track banner.id) {
+      @for (banner of banners(); track banner.id; let i = $index) {
         <div class="relative aspect-[4/5] w-full shrink-0 sm:aspect-[16/7]">
-          <img [src]="banner.imageUrl" [alt]="banner.title" class="h-full w-full object-cover" />
+          <!-- First slide is the LCP image: load eagerly at high priority; rest can wait -->
+          <img
+            [src]="banner.imageUrl"
+            [alt]="banner.title"
+            [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="i === 0 ? 'high' : null"
+            class="h-full w-full object-cover"
+          />
           <div class="absolute inset-0 bg-gradient-to-t from-brand-charcoal/85 via-brand-charcoal/25 to-brand-charcoal/10"></div>
 
           <div class="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-8 sm:max-w-md">

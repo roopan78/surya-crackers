@@ -14,6 +14,7 @@ import {
   TriangleAlert,
 } from 'lucide-angular';
 import { PaymentService } from '../../core/services/payment.service';
+import { SeoService } from '../../core/services/seo.service';
 import { PaymentProviderType, PaymentStatus, UpiDetails } from '../../core/models';
 
 interface ConfirmationState {
@@ -91,6 +92,15 @@ export class OrderConfirmation implements OnInit {
     }
     return 'Pay in cash when you arrive to collect your order.';
   });
+
+  constructor() {
+    inject(SeoService).update({
+      title: 'Order Confirmation | Surya Crackers',
+      description: 'Your Surya Crackers order confirmation and payment details.',
+      path: '/order-confirmation',
+      robots: 'noindex,nofollow',
+    });
+  }
 
   ngOnInit(): void {
     const provider = this.state.paymentProvider;

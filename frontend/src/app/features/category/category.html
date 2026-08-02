@@ -1,8 +1,13 @@
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-  <a routerLink="/" class="btn-ghost -ml-3 mb-4">
-    <lucide-icon [img]="ArrowLeftIcon" class="h-4 w-4" />
-    Back to shop
-  </a>
+  <nav aria-label="Breadcrumb" class="mb-4 text-sm text-brand-ink-secondary">
+    <ol class="flex flex-wrap items-center gap-1.5">
+      <li><a routerLink="/" class="font-medium transition hover:text-brand-red">Home</a></li>
+      @if (category(); as c) {
+        <li aria-hidden="true">›</li>
+        <li aria-current="page" class="font-medium text-brand-charcoal">{{ c.name }}</li>
+      }
+    </ol>
+  </nav>
 
   @if (loadError()) {
     <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
@@ -43,6 +48,18 @@
       </div>
     } @else {
       <p class="mt-8 text-sm text-brand-ink-muted">No products in this category yet.</p>
+    }
+
+    <!-- Cross-links to sibling categories -->
+    @if (otherCategories().length > 0) {
+      <section class="mt-14">
+        <h2 class="section-heading">Browse Other Categories</h2>
+        <nav aria-label="Other categories" class="scrollbar-thin mt-4 flex gap-2 overflow-x-auto pb-2">
+          @for (other of otherCategories(); track other.id) {
+            <a [routerLink]="['/category', other.slug]" class="pill pill-inactive shrink-0">{{ other.name }}</a>
+          }
+        </nav>
+      </section>
     }
   }
 </div>

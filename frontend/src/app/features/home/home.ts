@@ -13,6 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { CatalogService } from '../../core/services/catalog.service';
+import { SeoService } from '../../core/services/seo.service';
 import { HeroCarousel } from '../../shared/components/hero-carousel/hero-carousel';
 import { CategoryPill } from '../../shared/components/category-pill/category-pill';
 import { ProductCard } from '../../shared/components/product-card/product-card';
@@ -44,6 +45,7 @@ const ALL_SLUG = 'all';
 })
 export class Home {
   private readonly catalogService = inject(CatalogService);
+  private readonly seoService = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
@@ -111,6 +113,31 @@ export class Home {
   readonly ALL_SLUG = ALL_SLUG;
 
   constructor() {
+    this.seoService.update({
+      title: 'Buy Crackers Online - Sivakasi Fireworks | Surya Crackers',
+      description:
+        'Buy premium Sivakasi crackers and fireworks online from Surya Crackers. Browse quality products and order online today.',
+      keywords: 'crackers online, fireworks, sivakasi crackers, buy crackers online, festival fireworks',
+      path: '/',
+    });
+    this.seoService.setJsonLd('organization', {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Surya Crackers',
+      url: 'https://suryacrackers.shop',
+    });
+    this.seoService.setJsonLd('website', {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Surya Crackers',
+      url: 'https://suryacrackers.shop',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://suryacrackers.shop/?q={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    });
+
     // The inventory grid sits below the hero, categories and safety notice, so a
     // search submitted from the sticky header changes nothing inside the
     // viewport unless we bring the results up. Re-runs once the grid exists,

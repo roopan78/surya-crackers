@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule, Save, CheckCircle2, LogOut } from 'lucide-angular';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-profile',
@@ -19,6 +20,8 @@ export class Profile {
   readonly CheckCircle2Icon = CheckCircle2;
   readonly LogOutIcon = LogOut;
 
+  private readonly seoService = inject(SeoService);
+
   readonly saving = signal(false);
   readonly saved = signal(false);
 
@@ -26,6 +29,15 @@ export class Profile {
     name: [this.customerAuthService.currentUser()?.name ?? '', [Validators.required, Validators.minLength(2)]],
     mobile: [this.customerAuthService.currentUser()?.mobile ?? '', [Validators.pattern(/^[0-9]{10}$/)]],
   });
+
+  constructor() {
+    this.seoService.update({
+      title: 'My Profile | Surya Crackers',
+      description: 'Manage your Surya Crackers account details.',
+      path: '/account',
+      robots: 'noindex,follow',
+    });
+  }
 
   submit(): void {
     if (this.form.invalid || this.saving()) {

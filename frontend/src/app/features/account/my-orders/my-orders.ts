@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule, Package } from 'lucide-angular';
 import { OrderService } from '../../../core/services/order.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { Order, PaymentProviderType } from '../../../core/models';
 
 const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
@@ -24,6 +25,15 @@ export class MyOrders implements OnInit {
   readonly providerLabels = PROVIDER_LABELS;
   readonly orders = signal<Order[]>([]);
   readonly loading = signal(true);
+
+  constructor() {
+    inject(SeoService).update({
+      title: 'My Orders | Surya Crackers',
+      description: 'Track your Surya Crackers pickup orders.',
+      path: '/account/orders',
+      robots: 'noindex,follow',
+    });
+  }
 
   ngOnInit(): void {
     this.orderService.getMyOrders().subscribe({

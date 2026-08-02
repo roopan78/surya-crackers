@@ -1,9 +1,16 @@
 @if (product(); as p) {
   <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-    <a routerLink="/" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink-secondary transition hover:text-brand-red">
-      <lucide-icon [img]="ArrowLeftIcon" class="h-4 w-4" />
-      Back to shop
-    </a>
+    <nav aria-label="Breadcrumb" class="text-sm text-brand-ink-secondary">
+      <ol class="flex flex-wrap items-center gap-1.5">
+        <li><a routerLink="/" class="font-medium transition hover:text-brand-red">Home</a></li>
+        @if (category(); as c) {
+          <li aria-hidden="true">›</li>
+          <li><a [routerLink]="['/category', c.slug]" class="font-medium transition hover:text-brand-red">{{ c.name }}</a></li>
+        }
+        <li aria-hidden="true">›</li>
+        <li aria-current="page" class="font-medium text-brand-charcoal">{{ p.name }}</li>
+      </ol>
+    </nav>
 
     <div class="mt-6 grid gap-8 lg:grid-cols-2">
       <!-- Gallery -->
@@ -33,7 +40,12 @@
             <span class="badge-gold mb-3">Featured Product</span>
           }
           <h1 class="font-display text-2xl font-extrabold tracking-tight text-brand-charcoal sm:text-3xl">{{ p.name }}</h1>
-          <p class="mt-2 text-sm text-brand-ink-muted">Category: {{ p.categorySlug | titlecase }}</p>
+          <p class="mt-2 text-sm text-brand-ink-muted">
+            Category:
+            <a [routerLink]="['/category', p.categorySlug]" class="transition hover:text-brand-red">
+              {{ category()?.name ?? (p.categorySlug | titlecase) }}
+            </a>
+          </p>
         </div>
 
         <div class="glass-card-solid flex flex-wrap items-center justify-between gap-4 p-5">

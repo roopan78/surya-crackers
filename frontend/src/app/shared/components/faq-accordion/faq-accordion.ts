@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { LucideAngularModule, ChevronDown } from 'lucide-angular';
 import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive';
+import { SeoService } from '../../../core/services/seo.service';
 
 interface FaqItem {
   question: string;
@@ -13,7 +14,9 @@ interface FaqItem {
   imports: [LucideAngularModule, ScrollRevealDirective],
   templateUrl: './faq-accordion.html',
 })
-export class FaqAccordion {
+export class FaqAccordion implements OnDestroy {
+  private readonly seoService = inject(SeoService);
+
   readonly ChevronDownIcon = ChevronDown;
 
   readonly openIndex = signal<number | null>(0);
@@ -27,7 +30,7 @@ export class FaqAccordion {
     {
       question: 'Is there a minimum age to purchase?',
       answer:
-        'Yes — firecrackers are a regulated, age-restricted product. You must confirm you are 18 or older before browsing the store, and all purchases are intended for adult use and supervision only.',
+        'Yes — firecrackers are a regulated, age-restricted product. Sales are restricted to adults aged 18 and over, and all purchases are intended for adult use and supervision only.',
     },
     {
       question: 'Do you deliver, or is it pickup only?',
@@ -45,6 +48,23 @@ export class FaqAccordion {
         'Message us on WhatsApp with your order number as soon as possible and we will do our best to accommodate changes before your order is packed for pickup.',
     },
   ];
+
+  constructor() {
+    // FAQPage structured data mirrors the rendered accordion exactly.
+    this.seoService.setJsonLd('faq', {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: this.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      })),
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.seoService.setJsonLd('faq', null);
+  }
 
   toggle(index: number): void {
     this.openIndex.set(this.openIndex() === index ? null : index);

@@ -6,6 +6,7 @@ import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerAuthService } from '../../core/services/customer-auth.service';
+import { SeoService } from '../../core/services/seo.service';
 import { QuantityStepper } from '../../shared/components/quantity-stepper/quantity-stepper';
 import { OrderDetails, PaymentMethodInfo, PaymentProviderType } from '../../core/models';
 
@@ -40,6 +41,15 @@ export class Checkout implements OnInit {
     pickupTime: [''],
     notes: [''],
   });
+
+  constructor() {
+    inject(SeoService).update({
+      title: 'Cart & Checkout | Surya Crackers',
+      description: 'Review your cart and place your pickup order with Surya Crackers.',
+      path: '/checkout',
+      robots: 'noindex,follow',
+    });
+  }
 
   ngOnInit(): void {
     const user = this.customerAuthService.currentUser();
