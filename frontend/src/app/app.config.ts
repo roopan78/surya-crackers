@@ -1,5 +1,7 @@
 import {
   ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -8,6 +10,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { AnalyticsService } from './core/services/analytics.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,5 +18,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideAppInitializer(() => inject(AnalyticsService).init()),
   ],
 };
