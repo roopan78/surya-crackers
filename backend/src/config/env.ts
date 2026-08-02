@@ -9,6 +9,9 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
   JWT_EXPIRES_IN: z.string().default('1d'),
 
+  // Canonical public storefront origin — used for absolute URLs in the sitemap
+  PUBLIC_SITE_URL: z.string().default('https://suryacrackers.shop'),
+
   // RBAC / super-admin bootstrap — this email is always granted SUPER_ADMIN
   SUPER_ADMIN_EMAIL: z.string().default(''),
 

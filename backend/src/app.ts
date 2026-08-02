@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { env } from './config/env';
 import routes from './routes';
+import { serveSitemap } from './controllers/sitemap.controller';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 export function createApp() {
@@ -27,6 +28,9 @@ export function createApp() {
   app.get('/health', (_req, res) => {
     res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // Not under /api — the storefront domain rewrites /sitemap.xml straight here.
+  app.get('/sitemap.xml', serveSitemap);
 
   app.use('/api', routes);
 

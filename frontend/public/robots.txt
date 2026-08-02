@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /login
+Disallow: /checkout
+Disallow: /account
+Disallow: /order-confirmation/
+
+Sitemap: https://suryacrackers.shop/sitemap.xml

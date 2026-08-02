@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/frontend/browser",
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://api.suryacrackers.shop/sitemap.xml" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
