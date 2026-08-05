@@ -41,6 +41,14 @@ const envSchema = z.object({
   WHATSAPP_TEMPLATE_ORDER_FAILED: z.string().default('order_failed'),
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().default('en'),
 
+  // Cloudinary — product image hosting. The browser uploads directly to
+  // Cloudinary using a short-lived signature minted here, so image bytes never
+  // pass through this API and are not limited by its request body size.
+  CLOUDINARY_CLOUD_NAME: z.string().default(''),
+  CLOUDINARY_API_KEY: z.string().default(''),
+  CLOUDINARY_API_SECRET: z.string().default(''),
+  CLOUDINARY_UPLOAD_FOLDER: z.string().default('surya-crackers'),
+
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z
     .enum(['true', 'false'])

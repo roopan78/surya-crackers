@@ -7,6 +7,7 @@ import carouselRoutes from './carousel.routes';
 import footerRoutes from './footer.routes';
 import ordersRoutes from './orders.routes';
 import usersRoutes from './users.routes';
+import uploadsRoutes from './uploads.routes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/carousel', carouselRoutes);
 router.use('/footer-config', footerRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/users', usersRoutes);
+router.use('/uploads', uploadsRoutes);
 
 export default router;

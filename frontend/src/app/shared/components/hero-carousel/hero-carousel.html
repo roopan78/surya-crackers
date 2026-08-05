@@ -8,7 +8,7 @@
         <div class="relative aspect-[4/5] w-full shrink-0 sm:aspect-[16/7]">
           <!-- First slide is the LCP image: load eagerly at high priority; rest can wait -->
           <img
-            [src]="banner.imageUrl"
+            [src]="banner.imageUrl | cdnImage: 1600"
             [alt]="banner.title"
             [attr.loading]="i === 0 ? 'eager' : 'lazy'"
             [attr.fetchpriority]="i === 0 ? 'high' : null"

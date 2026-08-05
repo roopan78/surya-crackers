@@ -1,13 +1,14 @@
 import { Component, DestroyRef, inject, input, signal } from '@angular/core';
 import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
 import { CarouselBanner } from '../../../core/models';
+import { CdnImagePipe } from '../../pipes/cdn-image.pipe';
 
 const AUTO_ROTATE_MS = 5000;
 
 @Component({
   selector: 'app-hero-carousel',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, CdnImagePipe],
   templateUrl: './hero-carousel.html',
 })
 export class HeroCarousel {

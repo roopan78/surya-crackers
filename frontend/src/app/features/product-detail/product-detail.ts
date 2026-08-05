@@ -12,13 +12,14 @@ import { Product } from '../../core/models';
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { QuantityStepper } from '../../shared/components/quantity-stepper/quantity-stepper';
 import { YoutubeEmbedPipe } from '../../shared/pipes/youtube-embed.pipe';
+import { CdnImagePipe } from '../../shared/pipes/cdn-image.pipe';
 
 const SUGGESTION_LIMIT = 4;
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule, ProductCard, QuantityStepper, YoutubeEmbedPipe, TitleCasePipe],
+  imports: [RouterLink, LucideAngularModule, ProductCard, QuantityStepper, YoutubeEmbedPipe, CdnImagePipe, TitleCasePipe],
   templateUrl: './product-detail.html',
 })
 export class ProductDetail implements OnDestroy {

@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { LucideAngularModule, ShoppingCart, Sparkles } from 'lucide-angular';
 import { Product } from '../../../core/models';
 import { CartService } from '../../../core/services/cart.service';
+import { CdnImagePipe } from '../../pipes/cdn-image.pipe';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule],
+  imports: [RouterLink, LucideAngularModule, CdnImagePipe],
   templateUrl: './product-card.html',
 })
 export class ProductCard {

@@ -11,7 +11,7 @@
 
   <div class="aspect-square w-full overflow-hidden bg-brand-mist">
     <img
-      [src]="product().imageUrl"
+      [src]="product().imageUrl | cdnImage: 600"
       [alt]="product().name"
       loading="lazy"
       class="h-full w-full object-cover transition duration-500 group-hover:scale-105"

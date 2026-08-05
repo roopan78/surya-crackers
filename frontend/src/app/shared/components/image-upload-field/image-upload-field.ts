@@ -1,13 +1,16 @@
-import { Component, forwardRef, input } from '@angular/core';
+import { Component, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { LucideAngularModule, ImagePlus } from 'lucide-angular';
-import { readFileAsDataUrl } from '../../utils/file-to-data-url.util';
+import { HttpErrorResponse } from '@angular/common/http';
+import { LucideAngularModule, ImagePlus, Upload, TriangleAlert } from 'lucide-angular';
+import { UploadService } from '../../../core/services/upload.service';
+import { cdnImage } from '../../utils/cloudinary.util';
 
 /**
- * Reusable "image placeholder" field for Admin forms — a file picker
- * (previewed locally via a data URL, no backend/API involved) plus a
- * manual URL fallback. Implements ControlValueAccessor so it can be
- * bound with `formControlName` just like any other form field.
+ * Reusable image field for Admin forms: picks a file, uploads it straight to
+ * Cloudinary (browser -> Cloudinary, signed by our API) and stores the returned
+ * URL — never the image bytes. A manual URL box remains for images already
+ * hosted elsewhere. Implements ControlValueAccessor so it binds with
+ * `formControlName` like any other field.
  */
 @Component({
   selector: 'app-image-upload-field',
@@ -25,13 +28,25 @@ import { readFileAsDataUrl } from '../../utils/file-to-data-url.util';
 export class ImageUploadField implements ControlValueAccessor {
   readonly label = input('Image');
 
+  private readonly uploadService = inject(UploadService);
+
   value = '';
   disabled = false;
 
+  readonly uploading = signal(false);
+  readonly error = signal<string | null>(null);
+
   readonly ImagePlusIcon = ImagePlus;
+  readonly UploadIcon = Upload;
+  readonly TriangleAlertIcon = TriangleAlert;
 
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
+
+  /** Small preview variant — no need to pull the full-size original here. */
+  get previewUrl(): string {
+    return cdnImage(this.value, 160);
+  }
 
   writeValue(value: string): void {
     this.value = value ?? '';
@@ -51,18 +66,46 @@ export class ImageUploadField implements ControlValueAccessor {
 
   onUrlInput(value: string): void {
     this.value = value;
+    this.error.set(null);
     this.onChange(value);
   }
 
-  async onFileSelected(event: Event): Promise<void> {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) {
       return;
     }
-    const dataUrl = await readFileAsDataUrl(file);
-    this.value = dataUrl;
-    this.onChange(dataUrl);
-    this.onTouched();
+
+    const invalid = this.uploadService.validate(file);
+    if (invalid) {
+      this.error.set(invalid);
+      input.value = '';
+      return;
+    }
+
+    this.uploading.set(true);
+    this.error.set(null);
+
+    this.uploadService.upload(file).subscribe({
+      next: (uploaded) => {
+        this.uploading.set(false);
+        this.value = uploaded.url;
+        this.onChange(uploaded.url);
+        this.onTouched();
+        input.value = '';
+      },
+      error: (err: unknown) => {
+        this.uploading.set(false);
+        input.value = '';
+        const message =
+          err instanceof HttpErrorResponse && typeof err.error?.message === 'string'
+            ? err.error.message
+            : err instanceof Error
+              ? err.message
+              : 'Upload failed — please try again.';
+        this.error.set(message);
+      },
+    });
   }
 }

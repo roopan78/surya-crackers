@@ -1,18 +1,24 @@
 <div>
   <label class="field-label">{{ label() }}</label>
   <div class="flex items-center gap-3">
-    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-black/15 bg-brand-mist">
+    <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-black/15 bg-brand-mist">
       @if (value) {
-        <img [src]="value" alt="Preview" class="h-full w-full object-cover" />
+        <img [src]="previewUrl" alt="Preview" class="h-full w-full object-cover" />
       } @else {
         <lucide-icon [img]="ImagePlusIcon" class="h-6 w-6 text-brand-ink-muted" />
+      }
+      @if (uploading()) {
+        <div class="absolute inset-0 flex items-center justify-center bg-white/70">
+          <lucide-icon [img]="UploadIcon" class="h-5 w-5 animate-pulse text-brand-red" />
+        </div>
       }
     </div>
     <div class="flex flex-1 flex-col gap-2">
       <input
         type="file"
-        accept="image/*"
-        class="block w-full text-xs text-brand-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-charcoal hover:file:bg-black/10"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        [disabled]="disabled || uploading()"
+        class="block w-full text-xs text-brand-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-charcoal hover:file:bg-black/10 disabled:opacity-50"
         (change)="onFileSelected($event)"
       />
       <input
@@ -20,8 +26,17 @@
         placeholder="or paste an image URL"
         class="input-field !py-1.5 text-xs"
         [ngModel]="value"
+        [disabled]="uploading()"
         (ngModelChange)="onUrlInput($event)"
       />
+      @if (uploading()) {
+        <p class="text-xs text-brand-ink-muted">Uploading full-quality image…</p>
+      } @else if (error()) {
+        <p class="field-error flex items-center gap-1.5" role="alert">
+          <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
+          {{ error() }}
+        </p>
+      }
     </div>
   </div>
 </div>
