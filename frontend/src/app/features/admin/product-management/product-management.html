@@ -136,9 +136,10 @@
       </form>
     </div>
 
-    <!-- List -->
-    <div class="lg:col-span-2">
-      <div class="relative mb-4">
+    <!-- List — pinned to the viewport on desktop so a long catalog scrolls
+         inside its own panel instead of stretching the page indefinitely. -->
+    <div class="lg:col-span-2 lg:sticky lg:top-8 lg:flex lg:max-h-[calc(100vh-4rem)] lg:flex-col">
+      <div class="relative mb-4 lg:shrink-0">
         <lucide-icon [img]="SearchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted" />
         <input
           type="text"
@@ -149,7 +150,7 @@
         />
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div class="scrollbar-thin flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-2">
         @for (product of filteredProducts(); track product.id) {
           <div class="glass-card-solid flex flex-wrap items-center gap-4 p-4" [class.opacity-50]="!product.isActive">
             <img [src]="product.imageUrl" [alt]="product.name" class="h-14 w-14 rounded-2xl object-cover" />

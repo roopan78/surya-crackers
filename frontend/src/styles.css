@@ -132,6 +132,8 @@ body {
 /* Charcoal scrollbars for horizontal rails */
 .scrollbar-thin::-webkit-scrollbar {
   height: 6px;
+  /* Width matters for vertical scroll panels (e.g. the admin product list). */
+  width: 6px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: rgba(17, 24, 39, 0.2);
