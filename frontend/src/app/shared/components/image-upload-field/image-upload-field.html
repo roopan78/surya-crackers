@@ -21,6 +21,30 @@
         class="block w-full text-xs text-brand-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-charcoal hover:file:bg-black/10 disabled:opacity-50"
         (change)="onFileSelected($event)"
       />
+
+      <!-- Paste zone: focus it and press Ctrl+V, or use the button where the
+           browser allows reading the clipboard directly. -->
+      <div class="flex items-center gap-2">
+        <div
+          tabindex="0"
+          role="button"
+          aria-label="Paste a copied image from the clipboard"
+          class="flex flex-1 cursor-text items-center gap-2 rounded-xl border border-dashed border-black/15 bg-brand-mist/50 px-3 py-2 text-xs text-brand-ink-muted transition focus:border-brand-red focus:bg-brand-red-soft/30 focus:outline-none"
+          (paste)="onPaste($event)"
+        >
+          <lucide-icon [img]="ClipboardPasteIcon" class="h-3.5 w-3.5 shrink-0" />
+          Click here, then Ctrl+V to paste a copied image
+        </div>
+        <button
+          type="button"
+          class="btn-secondary !px-3 !py-2 !text-xs"
+          [disabled]="disabled || uploading()"
+          (click)="pasteFromClipboard()"
+        >
+          Paste
+        </button>
+      </div>
+
       <input
         type="text"
         placeholder="or paste an image URL"
@@ -29,6 +53,7 @@
         [disabled]="uploading()"
         (ngModelChange)="onUrlInput($event)"
       />
+
       @if (uploading()) {
         <p class="text-xs text-brand-ink-muted">Uploading full-quality image…</p>
       } @else if (error()) {
