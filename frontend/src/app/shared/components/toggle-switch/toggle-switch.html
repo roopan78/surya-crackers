@@ -8,10 +8,14 @@
     [class.bg-black/15]="!checked"
     (click)="toggle()"
   >
+    <!-- `left-0.5` anchors the knob to the track. Without it the knob falls back
+         to its static position, which a button centers, and the checked state
+         then shifts it clear of the track onto the label. The off-state offset
+         is static rather than a `translate-x-0.5` binding, because Angular
+         truncates a class binding at the dot (it compiled to `translate-x-0`). -->
     <span
-      class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+      class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
       [class.translate-x-5]="checked"
-      [class.translate-x-0.5]="!checked"
     ></span>
   </button>
   @if (label()) {

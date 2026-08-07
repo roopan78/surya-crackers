@@ -205,10 +205,20 @@ export class Home {
       // Effects run before the template refresh, and a search also hides the
       // Featured Picks strip sitting above this grid — scrolling right now
       // would aim at a layout that is about to collapse and overshoot.
-      afterNextRender(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), {
-        injector: this.injector,
-      });
+      this.scrollToResults();
     });
+  }
+
+  /**
+   * Brings the inventory grid into view once the DOM has settled. Deferred
+   * because selecting a category hides the Featured Picks strip above the
+   * grid; scrolling immediately would aim at a layout about to collapse.
+   */
+  private scrollToResults(): void {
+    afterNextRender(
+      () => this.resultsSection()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      { injector: this.injector },
+    );
   }
 
   selectCategory(category: Category | null): void {
@@ -217,6 +227,9 @@ export class Home {
     if (this.searchQuery()) {
       this.clearSearch();
     }
+    // Featured Categories sit well above the grid, so filtering from there
+    // otherwise changes nothing inside the viewport.
+    this.scrollToResults();
   }
 
   clearSearch(): void {
