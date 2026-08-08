@@ -8,6 +8,8 @@ export const createProductSchema = z.object({
   slug: z.string().regex(slugPattern, 'Slug must be lowercase, alphanumeric and hyphen-separated'),
   categoryId: z.string().min(1, 'categoryId is required'),
   price: z.coerce.number().positive('Price must be greater than 0'),
+  // Optional MRP shown struck through next to the selling price.
+  originalPrice: z.coerce.number().positive().nullable().optional(),
   boxQuantity: z.string().min(1, 'boxQuantity is required'),
   imageUrls: z.array(z.string().min(1)).default([]),
   videoUrl: z.string().optional().default(''),

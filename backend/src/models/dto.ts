@@ -19,6 +19,7 @@ export function toProductDTO(product: ProductWithCategory) {
     categorySlug: product.category.slug,
     category: toCategoryDTO(product.category),
     price: Number(product.price),
+    originalPrice: product.originalPrice === null ? null : Number(product.originalPrice),
     boxQuantity: product.boxQuantity,
     imageUrls: product.imageUrls,
     imageUrl: product.imageUrls[0] ?? '',

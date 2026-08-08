@@ -97,6 +97,9 @@ model Product {
   slug               String   @unique
   categoryId         String
   price              Decimal  @db.Decimal(10, 2)
+  // Pre-discount / MRP price. Null when the product is not discounted; the UI
+  // only strikes it through when it is genuinely higher than `price`.
+  originalPrice      Decimal? @db.Decimal(10, 2)
   boxQuantity        String
   imageUrls          String[]
   videoUrl           String?

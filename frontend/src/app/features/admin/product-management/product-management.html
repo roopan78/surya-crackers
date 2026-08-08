@@ -80,6 +80,17 @@
             }
           </div>
           <div>
+            <label class="field-label" for="prod-original-price">MRP (₹, optional)</label>
+            <input
+              id="prod-original-price"
+              type="number"
+              min="0"
+              formControlName="originalPrice"
+              class="input-field"
+              placeholder="Shown struck through"
+            />
+          </div>
+          <div>
             <label class="field-label" for="prod-box">Box Quantity</label>
             <input id="prod-box" type="text" formControlName="boxQuantity" class="input-field" placeholder="10 Pcs per box" />
             @if (form.controls.boxQuantity.invalid && form.controls.boxQuantity.touched) {

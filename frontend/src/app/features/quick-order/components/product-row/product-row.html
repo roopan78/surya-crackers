@@ -1,0 +1,61 @@
+<div
+  class="flex flex-wrap items-center gap-3 rounded-2xl border px-3 py-3 transition-colors sm:flex-nowrap sm:gap-4"
+  [class]="inOrder() ? 'border-brand-red/30 bg-brand-red-soft/30' : 'border-transparent'"
+>
+  <!-- Image -->
+  <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-mist">
+    @if (product().imageUrl) {
+      <img
+        [src]="product().imageUrl | cdnImage: 160"
+        [alt]="product().name"
+        loading="lazy"
+        decoding="async"
+        class="h-full w-full object-cover"
+      />
+    } @else {
+      <lucide-icon [img]="ImageOffIcon" class="h-5 w-5 text-brand-ink-muted" aria-hidden="true" />
+    }
+  </div>
+
+  <!-- Name + pack -->
+  <div class="min-w-[8rem] flex-1">
+    <p class="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-brand-charcoal">
+      {{ product().name }}
+      @if (inOrder()) {
+        <span
+          class="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700"
+        >
+          <lucide-icon [img]="CheckIcon" class="h-2.5 w-2.5" aria-hidden="true" />
+          Added
+        </span>
+      }
+    </p>
+    <p class="text-xs text-brand-ink-muted">{{ product().boxQuantity }}</p>
+  </div>
+
+  <!-- Price -->
+  <div class="w-20 shrink-0 text-right sm:text-left">
+    @if (showOriginalPrice()) {
+      <p class="text-xs text-brand-ink-muted line-through">₹{{ product().originalPrice }}</p>
+    }
+    <p class="text-sm font-bold text-brand-charcoal">₹{{ product().price }}</p>
+  </div>
+
+  <!-- Quantity -->
+  <div class="shrink-0">
+    <app-quantity-stepper
+      [quantity]="quantity()"
+      [disableDecrement]="quantity() === 0"
+      (increment)="increment.emit()"
+      (decrement)="decrement.emit()"
+    />
+  </div>
+
+  <!-- Subtotal -->
+  <div class="w-20 shrink-0 text-right">
+    <p class="text-[10px] font-semibold uppercase tracking-wide text-brand-ink-muted">Subtotal</p>
+    <p class="text-sm font-bold" [class]="inOrder() ? 'text-brand-red' : 'text-brand-ink-muted'">
+      ₹{{ subtotal() }}
+    </p>
+  </div>
+</div>

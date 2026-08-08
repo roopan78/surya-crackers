@@ -179,6 +179,17 @@ body {
   }
 }
 
+@keyframes accordion-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 [data-reveal] {
   opacity: 0;
   transform: translateY(24px);
@@ -198,6 +209,11 @@ body {
 
 .animate-toast-in {
   animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Accordion panels (Quick Order categories) — a short fade, nothing heavy. */
+.animate-accordion-in {
+  animation: accordion-in 0.18s ease-out;
 }
 
 .skeleton {
@@ -220,6 +236,7 @@ body {
     transition: none;
   }
   .animate-float,
+  .animate-accordion-in,
   .skeleton::after {
     animation: none;
   }

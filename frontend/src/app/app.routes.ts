@@ -28,6 +28,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/category/category').then((m) => m.CategoryPage),
       },
       {
+        path: 'quick-order',
+        loadComponent: () => import('./features/quick-order/quick-order').then((m) => m.QuickOrder),
+      },
+      {
         path: 'checkout',
         loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout),
       },

@@ -1,0 +1,41 @@
+<section class="glass-card-solid overflow-hidden">
+  <h3>
+    <button
+      type="button"
+      class="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-brand-mist/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/50"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="panelId()"
+      (click)="toggled.emit()"
+    >
+      <span class="flex items-center gap-2">
+        <span class="font-display text-sm font-bold text-brand-charcoal sm:text-base">{{ title() }}</span>
+        <span class="text-xs text-brand-ink-muted">({{ products().length }})</span>
+        @if (selectedCount() > 0) {
+          <span class="rounded-full bg-brand-red px-2 py-0.5 text-[10px] font-bold text-white">
+            {{ selectedCount() }} selected
+          </span>
+        }
+      </span>
+      <lucide-icon
+        [img]="ChevronDownIcon"
+        class="h-4 w-4 shrink-0 text-brand-ink-muted transition-transform duration-200"
+        [class]="expanded() ? 'rotate-180' : ''"
+        aria-hidden="true"
+      />
+    </button>
+  </h3>
+
+  <!-- Rows exist in the DOM only while open — this is the lazy render. -->
+  @if (expanded()) {
+    <div [id]="panelId()" class="animate-accordion-in flex flex-col gap-1 border-t border-black/5 px-2 py-2 sm:px-3">
+      @for (product of products(); track product.id) {
+        <app-product-row
+          [product]="product"
+          [quantity]="quantityOf(product)"
+          (increment)="incremented.emit(product)"
+          (decrement)="decremented.emit(product)"
+        />
+      }
+    </div>
+  }
+</section>

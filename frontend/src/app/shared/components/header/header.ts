@@ -10,7 +10,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideAngularModule, Flame, ShoppingCart, Search, User, X } from 'lucide-angular';
+import { LucideAngularModule, Flame, ShoppingCart, Search, User, X, ListPlus } from 'lucide-angular';
 import { CartService } from '../../../core/services/cart.service';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
 import { SearchComponent } from '../../search/search.component';
@@ -34,6 +34,7 @@ export class Header {
   readonly SearchIcon = Search;
   readonly UserIcon = User;
   readonly XIcon = X;
+  readonly ListPlusIcon = ListPlus;
 
   /** The search that is actually applied, per the URL — not what is being typed. */
   private readonly activeQuery = toSignal(

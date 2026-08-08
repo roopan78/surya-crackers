@@ -27,6 +27,7 @@ export interface ProductWritePayload {
   slug: string;
   categoryId: string;
   price: number;
+  originalPrice: number | null;
   boxQuantity: string;
   imageUrls: string[];
   videoUrl: string;

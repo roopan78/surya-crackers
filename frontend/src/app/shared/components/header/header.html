@@ -11,6 +11,7 @@
 
     <nav class="hidden items-center gap-1 text-sm font-semibold text-brand-ink-secondary sm:flex">
       <a routerLink="/" class="btn-ghost">Home</a>
+      <a routerLink="/quick-order" class="btn-ghost">Quick Order</a>
     </nav>
 
     <div class="flex flex-1 items-center justify-end gap-2">
@@ -22,6 +23,12 @@
       <button type="button" class="btn-ghost !p-2.5" (click)="toggleSearch()" aria-label="Toggle search">
         <lucide-icon [img]="searchOpen() ? XIcon : SearchIcon" class="h-4.5 w-4.5" />
       </button>
+
+      <!-- This header has no hamburger menu, so on small screens Quick Order
+           joins the icon actions rather than the text nav above. -->
+      <a routerLink="/quick-order" class="btn-ghost !p-2.5 sm:hidden" aria-label="Quick Order">
+        <lucide-icon [img]="ListPlusIcon" class="h-4.5 w-4.5" />
+      </a>
 
       <a
         [routerLink]="customerAuthService.isAuthenticated() ? '/account' : '/login'"

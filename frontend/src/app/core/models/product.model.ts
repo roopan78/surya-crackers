@@ -5,6 +5,8 @@ export interface Product {
   slug: string;
   categorySlug: string;
   price: number;
+  /** Pre-discount MRP; struck through when higher than `price`. */
+  originalPrice?: number | null;
   /** Human readable packing description, e.g. "10 Pcs per box" */
   boxQuantity: string;
   imageUrl: string;

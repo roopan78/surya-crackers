@@ -1,0 +1,70 @@
+@if (compact()) {
+  <!-- Mobile sticky bar -->
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-muted">
+        Items: {{ cartService.totalBoxes() }}
+      </p>
+      <p class="font-display text-lg font-extrabold leading-tight text-brand-charcoal">
+        ₹{{ cartService.grandTotal() }}
+      </p>
+      @if (amountToMinimum() > 0) {
+        <p class="text-[10px] text-brand-ink-muted">₹{{ amountToMinimum() }} to minimum</p>
+      }
+    </div>
+    <a
+      routerLink="/checkout"
+      class="btn-primary shrink-0"
+      [attr.aria-disabled]="cartService.isEmpty()"
+      [class]="cartService.isEmpty() ? 'pointer-events-none opacity-50' : ''"
+    >
+      Proceed
+    </a>
+  </div>
+} @else {
+  <!-- Desktop summary card -->
+  <div class="glass-card-solid p-5">
+    <h2 class="font-display text-base font-extrabold tracking-tight text-brand-charcoal">Order Summary</h2>
+
+    <dl class="mt-4 flex flex-col gap-2 text-sm">
+      <div class="flex items-center justify-between">
+        <dt class="text-brand-ink-secondary">Items</dt>
+        <dd class="font-semibold text-brand-charcoal">{{ cartService.totalBoxes() }}</dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-brand-ink-secondary">Products</dt>
+        <dd class="font-semibold text-brand-charcoal">{{ cartService.totalLineItems() }}</dd>
+      </div>
+      <div class="flex items-center justify-between border-t border-black/5 pt-2">
+        <dt class="font-semibold text-brand-charcoal">Grand Total</dt>
+        <dd class="font-display text-xl font-extrabold text-brand-red">₹{{ cartService.grandTotal() }}</dd>
+      </div>
+    </dl>
+
+    @if (amountToMinimum() > 0) {
+      <p class="mt-3 rounded-xl bg-brand-mist/70 px-3 py-2 text-xs text-brand-ink-secondary">
+        Add <span class="font-semibold text-brand-charcoal">₹{{ amountToMinimum() }}</span> more to reach the
+        ₹{{ minOrderTn }} minimum for Tamil Nadu &amp; Puducherry.
+      </p>
+    } @else if (!cartService.isEmpty()) {
+      <p class="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+        Minimum order value reached.
+      </p>
+    }
+
+    <a
+      routerLink="/checkout"
+      class="btn-primary mt-4 w-full justify-center"
+      [attr.aria-disabled]="cartService.isEmpty()"
+      [class]="cartService.isEmpty() ? 'pointer-events-none opacity-50' : ''"
+    >
+      <lucide-icon [img]="ShoppingCartIcon" class="h-4 w-4" aria-hidden="true" />
+      Proceed to Checkout
+    </a>
+
+    <p class="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-brand-ink-muted">
+      <lucide-icon [img]="InfoIcon" class="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+      Minimum order ₹{{ minOrderTn }} for Tamil Nadu &amp; Puducherry, ₹{{ minOrderOther }} for other states.
+    </p>
+  </div>
+}

@@ -1,0 +1,113 @@
+<div class="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 sm:py-10 lg:pb-10">
+  <!-- Heading -->
+  <header>
+    <p class="section-eyebrow">Bulk Ordering</p>
+    <h1 class="section-heading mt-1">Quick Order</h1>
+    <p class="mt-1.5 max-w-xl text-sm text-brand-ink-secondary">
+      Choose products category-wise and add quantities instantly.
+    </p>
+  </header>
+
+  <!-- Minimum order notice -->
+  <div class="glass-card-solid mt-5 flex items-start gap-3 p-4">
+    <lucide-icon [img]="InfoIcon" class="mt-0.5 h-4 w-4 shrink-0 text-brand-gold" aria-hidden="true" />
+    <p class="text-xs leading-relaxed text-brand-ink-secondary sm:text-sm">
+      <span class="font-semibold text-brand-charcoal">Minimum order</span> — ₹{{ minOrderTn }} for Tamil Nadu &amp;
+      Puducherry, ₹{{ minOrderOther }} for other states.
+    </p>
+  </div>
+
+  <!-- Search -->
+  <div class="relative mt-5">
+    <lucide-icon
+      [img]="SearchIcon"
+      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted"
+      aria-hidden="true"
+    />
+    <label class="sr-only" for="quick-order-search">Search products</label>
+    <input
+      id="quick-order-search"
+      type="search"
+      [ngModel]="searchTerm()"
+      (ngModelChange)="searchTerm.set($event)"
+      placeholder="Search by product, category or price…"
+      class="input-field !pl-10 !pr-10"
+      autocomplete="off"
+    />
+    @if (searching()) {
+      <button
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-brand-ink-muted transition hover:text-brand-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/50"
+        (click)="clearSearch()"
+        aria-label="Clear search"
+      >
+        <lucide-icon [img]="XIcon" class="h-4 w-4" />
+      </button>
+    }
+  </div>
+  @if (searching()) {
+    <p class="mt-2 text-xs text-brand-ink-muted" role="status" aria-live="polite">
+      {{ matchCount() }} {{ matchCount() === 1 ? 'product' : 'products' }} found
+    </p>
+  }
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <!-- Categories -->
+    <div class="lg:col-span-2">
+      @if (loadError()) {
+        <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
+          <p class="text-sm text-brand-ink-secondary">Could not load the catalog right now. Please check your connection.</p>
+          <button type="button" class="btn-secondary" (click)="retry()">Try Again</button>
+        </div>
+      } @else if (loading()) {
+        <div class="flex flex-col gap-3">
+          @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+            <div class="skeleton h-14 rounded-2xl"></div>
+          }
+        </div>
+      } @else if (groups().length === 0) {
+        <div class="glass-card-solid flex flex-col items-center gap-2 p-10 text-center">
+          <lucide-icon [img]="PackageSearchIcon" class="h-7 w-7 text-brand-ink-muted" aria-hidden="true" />
+          <p class="text-sm font-semibold text-brand-charcoal">No products match your search</p>
+          <p class="text-sm text-brand-ink-secondary">Try a different product name, category or price.</p>
+          @if (searching()) {
+            <button type="button" class="btn-secondary mt-1" (click)="clearSearch()">Clear search</button>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (group of groups(); track group.slug) {
+            <app-category-accordion
+              [title]="group.name"
+              [panelId]="'quick-order-panel-' + group.slug"
+              [products]="group.products"
+              [expanded]="isExpanded(group.slug)"
+              [quantities]="quantities()"
+              (toggled)="toggleCategory(group.slug)"
+              (incremented)="increment($event)"
+              (decremented)="decrement($event)"
+            />
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Desktop summary -->
+    <aside class="hidden lg:block">
+      <div class="sticky top-24">
+        <app-order-summary />
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Mobile sticky bar -->
+@if (!isEmpty()) {
+  <div
+    class="glass-nav fixed inset-x-0 bottom-0 z-30 border-t border-black/5 px-4 py-3 lg:hidden"
+    role="region"
+    aria-label="Order summary"
+  >
+    <app-order-summary [compact]="true" />
+  </div>
+}

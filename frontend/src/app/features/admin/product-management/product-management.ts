@@ -57,6 +57,8 @@ export class ProductManagement implements OnInit {
     sku: ['', [Validators.required]],
     slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]],
     price: [0, [Validators.required, Validators.min(1)]],
+    // Optional MRP; blank means "not discounted" and stores null.
+    originalPrice: [null as number | null],
     boxQuantity: ['', [Validators.required]],
     imageUrl: ['', [Validators.required]],
     videoUrl: [''],
@@ -88,6 +90,7 @@ export class ProductManagement implements OnInit {
       sku: product.sku,
       slug: product.slug,
       price: product.price,
+      originalPrice: product.originalPrice ?? null,
       boxQuantity: product.boxQuantity,
       imageUrl: product.imageUrl,
       videoUrl: product.videoUrl ?? '',
@@ -106,6 +109,7 @@ export class ProductManagement implements OnInit {
       sku: '',
       slug: '',
       price: 0,
+      originalPrice: null,
       boxQuantity: '',
       imageUrl: '',
       videoUrl: '',
@@ -129,6 +133,8 @@ export class ProductManagement implements OnInit {
       slug: value.slug,
       categoryId: value.categoryId,
       price: value.price,
+      // Empty input arrives as null/'' — normalize so "no MRP" is stored as null.
+      originalPrice: value.originalPrice ? Number(value.originalPrice) : null,
       boxQuantity: value.boxQuantity,
       imageUrls: [value.imageUrl],
       videoUrl: value.videoUrl,

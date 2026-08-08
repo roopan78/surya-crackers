@@ -31,6 +31,15 @@ export class CartService {
 
   readonly isEmpty = computed(() => this.itemsSignal().length === 0);
 
+  /**
+   * Box count keyed by product id. Built once per cart change so a long list
+   * (the Quick Order page renders the whole catalog) can look up each row's
+   * quantity in O(1) instead of scanning the cart for every row.
+   */
+  readonly boxesByProductId = computed(
+    () => new Map(this.itemsSignal().map((item) => [item.product.id, item.boxes])),
+  );
+
   constructor() {
     // Keep localStorage in sync with any signal mutation automatically.
     effect(() => {
