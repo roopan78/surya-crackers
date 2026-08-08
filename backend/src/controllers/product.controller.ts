@@ -7,6 +7,7 @@ import { sendSuccess } from '../utils/ApiResponse';
 import { toProductDTO } from '../models/dto';
 import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { CreateProductInput, ListProductsQuery, UpdateProductInput } from '../validators/product.validator';
+import { submitPaths } from '../services/indexnow.service';
 
 const includeCategory = { category: true } satisfies Prisma.ProductInclude;
 
@@ -96,6 +97,7 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
     data: input,
     include: includeCategory,
   });
+  submitPaths(['/', `/product/${product.slug}`, `/category/${product.category.slug}`]);
   return sendSuccess(res, toProductDTO(product), 201);
 });
 
@@ -120,6 +122,8 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
     data: input,
     include: includeCategory,
   });
+  // Include the previous slug: renaming retires the old URL.
+  submitPaths(['/', `/product/${product.slug}`, `/product/${existing.slug}`, `/category/${product.category.slug}`]);
   return sendSuccess(res, toProductDTO(product));
 });
 
@@ -130,5 +134,6 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
     throw ApiError.notFound('Product not found');
   }
   await prisma.product.delete({ where: { id: req.params.id } });
+  submitPaths(['/', `/product/${existing.slug}`]);
   return sendSuccess(res, { id: req.params.id });
 });

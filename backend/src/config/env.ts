@@ -12,6 +12,10 @@ const envSchema = z.object({
   // Canonical public storefront origin — used for absolute URLs in the sitemap
   PUBLIC_SITE_URL: z.string().default('https://suryacrackers.shop'),
 
+  // IndexNow key. Must match the filename served at <site>/<key>.txt, which is
+  // how the search engine verifies we own the host. Empty disables submission.
+  INDEXNOW_KEY: z.string().default(''),
+
   // RBAC / super-admin bootstrap — this email is always granted SUPER_ADMIN
   SUPER_ADMIN_EMAIL: z.string().default(''),
 

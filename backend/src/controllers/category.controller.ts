@@ -5,6 +5,7 @@ import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
 import { toCategoryDTO } from '../models/dto';
 import { CreateCategoryInput, UpdateCategoryInput } from '../validators/category.validator';
+import { submitPaths } from '../services/indexnow.service';
 
 // GET /api/categories — public, active only
 export const listActiveCategories = asyncHandler(async (_req: Request, res: Response) => {
@@ -38,6 +39,7 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response) 
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
   const input = req.body as CreateCategoryInput;
   const category = await prisma.category.create({ data: input });
+  submitPaths(['/', `/category/${category.slug}`]);
   return sendSuccess(res, toCategoryDTO(category), 201);
 });
 
@@ -49,6 +51,8 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
     throw ApiError.notFound('Category not found');
   }
   const category = await prisma.category.update({ where: { id: req.params.id }, data: input });
+  // Submit the old slug too: renaming retires the previous URL.
+  submitPaths(['/', `/category/${category.slug}`, `/category/${existing.slug}`]);
   return sendSuccess(res, toCategoryDTO(category));
 });
 
@@ -65,5 +69,7 @@ export const deleteCategory = asyncHandler(async (req: Request, res: Response) =
   }
 
   await prisma.category.delete({ where: { id: req.params.id } });
+  // Tell search engines the URL is gone so it drops out sooner.
+  submitPaths(['/', `/category/${existing.slug}`]);
   return sendSuccess(res, { id: req.params.id });
 });

@@ -49,6 +49,20 @@ export class CategoryPage implements OnDestroy {
     effect(() => {
       const category = this.category();
       if (!category) {
+        // A removed category's URL still answers 200 with a "not found" view
+        // (static SPA — no real 404 status), which reads as a soft 404. Once
+        // the catalog has loaded and the slug still doesn't resolve, mark it
+        // noindex so search engines drop the URL.
+        if (!this.loading() && !this.loadError()) {
+          this.seoService.update({
+            title: 'Category Not Found | Surya Crackers',
+            description: 'This category is no longer available. Browse the full Surya Crackers range instead.',
+            path: `/category/${this.slug()}`,
+            robots: 'noindex,follow',
+          });
+          this.seoService.setJsonLd('collection', null);
+          this.seoService.setJsonLd('breadcrumb', null);
+        }
         return;
       }
       const path = `/category/${category.slug}`;

@@ -92,6 +92,20 @@ export class ProductDetail implements OnDestroy {
     effect(() => {
       const product = this.product();
       if (!product) {
+        // The catalog is a static SPA, so a deleted product's URL still answers
+        // 200 with a "not found" view — a soft 404. Once the catalog has loaded
+        // and the slug still doesn't resolve, mark it noindex so search engines
+        // drop the URL instead of indexing an empty page.
+        if (!this.catalogService.loading() && !this.catalogService.loadError()) {
+          this.seoService.update({
+            title: 'Product Not Found | Surya Crackers',
+            description: 'This product is no longer available. Browse the full Surya Crackers range instead.',
+            path: `/product/${this.productKey()}`,
+            robots: 'noindex,follow',
+          });
+          this.seoService.setJsonLd('product', null);
+          this.seoService.setJsonLd('breadcrumb', null);
+        }
         return;
       }
       const category = this.category();
