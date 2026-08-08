@@ -21,6 +21,8 @@ export class ProductRow {
 
   readonly increment = output<void>();
   readonly decrement = output<void>();
+  /** Absolute quantity typed into the stepper. */
+  readonly quantityChange = output<number>();
 
   readonly ImageOffIcon = ImageOff;
   readonly CheckIcon = Check;

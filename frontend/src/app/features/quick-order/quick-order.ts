@@ -145,6 +145,22 @@ export class QuickOrder {
     this.cartService.decrementBoxes(product.id);
   }
 
+  /**
+   * Absolute quantity typed into a row. `setBoxes` only updates products already
+   * in the cart, so a first-time entry has to go through `addToCart`.
+   */
+  setQuantity(product: Product, quantity: number): void {
+    const boxes = Math.max(0, Math.floor(quantity) || 0);
+    const current = this.quantities().get(product.id) ?? 0;
+    if (current === 0) {
+      if (boxes > 0) {
+        this.cartService.addToCart(product, boxes);
+      }
+      return;
+    }
+    this.cartService.setBoxes(product.id, boxes);
+  }
+
   clearSearch(): void {
     this.searchTerm.set('');
   }

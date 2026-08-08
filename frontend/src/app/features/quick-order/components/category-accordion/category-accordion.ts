@@ -29,6 +29,7 @@ export class CategoryAccordion {
   readonly toggled = output<void>();
   readonly incremented = output<Product>();
   readonly decremented = output<Product>();
+  readonly quantitySet = output<{ product: Product; quantity: number }>();
 
   readonly ChevronDownIcon = ChevronDown;
 

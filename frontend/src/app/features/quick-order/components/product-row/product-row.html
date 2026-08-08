@@ -46,8 +46,11 @@
     <app-quantity-stepper
       [quantity]="quantity()"
       [disableDecrement]="quantity() === 0"
+      [editable]="true"
+      [ariaLabel]="'Quantity for ' + product().name"
       (increment)="increment.emit()"
       (decrement)="decrement.emit()"
+      (quantityChange)="quantityChange.emit($event)"
     />
   </div>
 

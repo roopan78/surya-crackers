@@ -4,7 +4,9 @@
 
   <div class="glass-card-solid mt-6 p-4">
     <div class="relative">
-      <lucide-icon [img]="SearchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted" />
+      <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink-muted">
+        <lucide-icon [img]="SearchIcon" class="h-4 w-4" />
+      </span>
       <input
         type="text"
         [ngModel]="searchTerm()"

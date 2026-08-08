@@ -1,17 +1,32 @@
-<div class="inline-flex items-center gap-3 rounded-2xl border border-black/10 bg-white px-2 py-1">
+<div class="inline-flex items-center gap-2 rounded-2xl border border-black/10 bg-white px-2 py-1">
   <button
     type="button"
-    class="flex h-7 w-7 items-center justify-center rounded-xl text-brand-ink-secondary transition hover:bg-brand-mist hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-40"
+    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-brand-ink-secondary transition hover:bg-brand-mist hover:text-brand-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/50 disabled:cursor-not-allowed disabled:opacity-40"
     [disabled]="disableDecrement()"
     (click)="decrement.emit()"
     aria-label="Decrease quantity"
   >
     <lucide-icon [img]="MinusIcon" class="h-4 w-4" />
   </button>
-  <span class="w-6 text-center text-sm font-semibold text-brand-charcoal">{{ quantity() }}</span>
+
+  @if (editable()) {
+    <input
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      class="w-10 rounded-lg bg-transparent text-center text-sm font-semibold text-brand-charcoal transition focus:bg-brand-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/50"
+      [value]="quantity()"
+      [attr.aria-label]="ariaLabel()"
+      (input)="onInput($event)"
+      (blur)="onBlur($event)"
+    />
+  } @else {
+    <span class="w-6 text-center text-sm font-semibold text-brand-charcoal">{{ quantity() }}</span>
+  }
+
   <button
     type="button"
-    class="flex h-7 w-7 items-center justify-center rounded-xl text-brand-ink-secondary transition hover:bg-brand-mist hover:text-brand-red"
+    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-brand-ink-secondary transition hover:bg-brand-mist hover:text-brand-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/50"
     (click)="increment.emit()"
     aria-label="Increase quantity"
   >

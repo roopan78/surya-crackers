@@ -34,6 +34,7 @@
           [quantity]="quantityOf(product)"
           (increment)="incremented.emit(product)"
           (decrement)="decremented.emit(product)"
+          (quantityChange)="quantitySet.emit({ product, quantity: $event })"
         />
       }
     </div>

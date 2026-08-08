@@ -151,7 +151,9 @@
          inside its own panel instead of stretching the page indefinitely. -->
     <div class="lg:col-span-2 lg:sticky lg:top-8 lg:flex lg:max-h-[calc(100vh-4rem)] lg:flex-col">
       <div class="relative mb-4 lg:shrink-0">
-        <lucide-icon [img]="SearchIcon" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted" />
+        <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink-muted">
+          <lucide-icon [img]="SearchIcon" class="h-4 w-4" />
+        </span>
         <input
           type="text"
           [ngModel]="searchTerm()"

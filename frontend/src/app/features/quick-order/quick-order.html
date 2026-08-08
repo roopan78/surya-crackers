@@ -19,11 +19,12 @@
 
   <!-- Search -->
   <div class="relative mt-5">
-    <lucide-icon
-      [img]="SearchIcon"
-      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-muted"
-      aria-hidden="true"
-    />
+    <!-- Positioning lives on the wrapper: lucide-angular copies the host's
+         classes onto the inner <svg>, so `absolute left-3.5` on the icon itself
+         gets applied twice and shoves the glyph into the placeholder text. -->
+    <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink-muted">
+      <lucide-icon [img]="SearchIcon" class="h-4 w-4" aria-hidden="true" />
+    </span>
     <label class="sr-only" for="quick-order-search">Search products</label>
     <input
       id="quick-order-search"
@@ -86,6 +87,7 @@
               (toggled)="toggleCategory(group.slug)"
               (incremented)="increment($event)"
               (decremented)="decrement($event)"
+              (quantitySet)="setQuantity($event.product, $event.quantity)"
             />
           }
         </div>
