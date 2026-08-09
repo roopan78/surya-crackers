@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LucideAngularModule, Trash2, ShoppingBag, TriangleAlert, Store } from 'lucide-angular';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
@@ -121,8 +122,14 @@ export class Checkout implements OnInit {
           },
         });
       },
-      error: () => {
-        this.submitError.set('Could not place your order — please check your connection and try again.');
+      error: (err: unknown) => {
+        // Surface the server's own reason (e.g. an unavailable payment method).
+        // Blaming the connection for every failure sent us hunting the wrong bug.
+        const message =
+          err instanceof HttpErrorResponse && typeof err.error?.message === 'string'
+            ? err.error.message
+            : 'Could not place your order — please check your connection and try again.';
+        this.submitError.set(message);
         this.submitting.set(false);
       },
     });

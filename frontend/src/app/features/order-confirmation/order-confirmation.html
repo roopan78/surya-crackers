@@ -1,14 +1,28 @@
 <div class="mx-auto flex max-w-xl flex-col items-center px-4 py-14 text-center sm:py-20">
-  <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-    <lucide-icon [img]="CircleCheckIcon" class="h-8 w-8" />
+  <div class="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+    <lucide-icon [img]="ClockIcon" class="h-8 w-8" />
   </div>
 
-  <p class="section-eyebrow mt-6">Order Confirmed</p>
+  <p class="section-eyebrow mt-6">Order Received</p>
   <h1 class="section-heading mt-1">Thank you!</h1>
   <p class="mt-2 text-sm text-brand-ink-secondary">Your order number is</p>
   <p class="font-display text-2xl font-extrabold tracking-tight text-brand-charcoal">{{ orderNumber }}</p>
 
-  <div class="glass-card-solid mt-8 w-full p-6 text-left">
+  <!-- Orders are taken as enquiries and confirmed by staff before pickup. -->
+  <div class="mt-6 w-full rounded-2xl border border-amber-200 bg-amber-50 p-5 text-left">
+    <div class="flex items-start gap-3">
+      <lucide-icon [img]="ClockIcon" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+      <div>
+        <p class="text-sm font-bold text-brand-charcoal">Your order is on hold</p>
+        <p class="mt-1 text-sm leading-relaxed text-brand-ink-secondary">
+          Our team will contact you shortly to confirm your order, the items and your pickup time. Payment is
+          collected in cash when you collect your order at our store.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-card-solid mt-4 w-full p-6 text-left">
     <div class="flex items-start gap-3">
       <lucide-icon [img]="StoreIcon" class="mt-0.5 h-5 w-5 shrink-0 text-brand-red" />
       <div>
@@ -28,145 +42,12 @@
       <lucide-icon [img]="IndianRupeeIcon" class="mt-0.5 h-5 w-5 shrink-0 text-brand-red" />
       <div>
         <p class="text-sm font-semibold text-brand-charcoal">
-          @if (displayAmount() !== null) { Total: ₹{{ displayAmount() }} }
+          @if (displayAmount() !== null) { Estimated total: ₹{{ displayAmount() }} }
         </p>
-        <p class="mt-0.5 text-sm text-brand-ink-secondary">{{ paymentMessage() }}</p>
+        <p class="mt-0.5 text-sm text-brand-ink-secondary">Cash on Pickup — payable at the store.</p>
       </div>
     </div>
   </div>
-
-  <!-- UPI payment (UPI_DIRECT orders only) -->
-  @if (upiLoading()) {
-    <div class="skeleton mt-4 h-64 w-full rounded-2xl"></div>
-  } @else if (upiError()) {
-    <div class="glass-card-solid mt-4 flex w-full flex-col items-center gap-3 p-6">
-      <lucide-icon [img]="TriangleAlertIcon" class="h-6 w-6 text-brand-red" />
-      <p class="text-sm text-brand-ink-secondary">Could not load your UPI payment details.</p>
-      <button type="button" class="btn-secondary" (click)="loadUpiDetails()">Try Again</button>
-    </div>
-  } @else if (upiDetails(); as upi) {
-    <div class="glass-card-solid mt-4 w-full p-6 text-left">
-      @if (paymentStatus() === 'PAID') {
-        <div class="flex items-start gap-3">
-          <lucide-icon [img]="CircleCheckIcon" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-          <div>
-            <p class="text-sm font-semibold text-brand-charcoal">Payment received</p>
-            <p class="mt-0.5 text-sm text-brand-ink-secondary">
-              Your UPI payment for this order has been verified. See you at pickup!
-            </p>
-          </div>
-        </div>
-      } @else {
-        <p class="section-eyebrow">Pay via UPI</p>
-        <h2 class="mt-1 font-display text-xl font-extrabold tracking-tight text-brand-charcoal">
-          Pay ₹{{ upi.amount }} to complete your order
-        </h2>
-
-        <!-- Desktop: large scannable QR -->
-        <div class="mt-5 hidden flex-col items-center md:flex">
-          <img
-            [src]="upi.qrDataUrl"
-            alt="UPI payment QR code for order {{ upi.orderNumber }}"
-            class="h-64 w-64 rounded-2xl border border-black/10 bg-white p-2"
-          />
-          <p class="mt-2 text-xs text-brand-ink-muted">Scan with Google Pay, PhonePe, Paytm or any UPI app</p>
-        </div>
-
-        <!-- Mobile: launch the UPI app directly -->
-        <button type="button" class="btn-primary mt-5 flex w-full items-center justify-center gap-2 md:hidden" (click)="payViaUpiApp()">
-          <lucide-icon [img]="SmartphoneIcon" class="h-4 w-4" />
-          Pay using Google Pay / PhonePe / Paytm
-        </button>
-
-        <button
-          type="button"
-          class="btn-secondary mt-3 flex w-full items-center justify-center gap-2 md:mx-auto md:w-auto"
-          (click)="copyVpa()"
-        >
-          <lucide-icon [img]="copied() ? CheckIcon : CopyIcon" class="h-4 w-4" />
-          {{ copied() ? 'Copied!' : 'Copy UPI ID' }}
-        </button>
-
-        <dl class="mt-5 flex flex-col gap-2 border-t border-black/5 pt-4 text-sm">
-          <div class="flex items-center justify-between">
-            <dt class="text-brand-ink-muted">Order Number</dt>
-            <dd class="font-semibold text-brand-charcoal">{{ upi.orderNumber }}</dd>
-          </div>
-          <div class="flex items-center justify-between">
-            <dt class="text-brand-ink-muted">Amount</dt>
-            <dd class="font-semibold text-brand-charcoal">₹{{ upi.amount }}</dd>
-          </div>
-          <div class="flex items-center justify-between">
-            <dt class="text-brand-ink-muted">Paying To</dt>
-            <dd class="font-semibold text-brand-charcoal">{{ upi.businessName }}</dd>
-          </div>
-          <div class="flex items-center justify-between">
-            <dt class="text-brand-ink-muted">UPI ID</dt>
-            <dd class="font-semibold text-brand-charcoal">{{ upi.vpa }}</dd>
-          </div>
-        </dl>
-
-        <div class="mt-4 rounded-2xl bg-brand-mist/60 p-4">
-          <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-muted">Payment Instructions</p>
-          <ol class="mt-2 list-decimal space-y-1 pl-4 text-xs text-brand-ink-secondary">
-            <li>Pay the exact amount using the QR code or the pay button above.</li>
-            <li>Find the 12-digit UTR (transaction reference) in your UPI app's payment receipt.</li>
-            <li>Enter the UTR below so we can verify your payment.</li>
-          </ol>
-        </div>
-
-        <!-- UTR submission -->
-        <div class="mt-5 border-t border-black/5 pt-5">
-          @if (!showUtrForm()) {
-            <div class="flex items-start gap-3" role="status">
-              <lucide-icon [img]="ClockIcon" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-              <div>
-                <p class="text-sm font-semibold text-brand-charcoal">
-                  {{ submitSuccess() ? 'Payment submitted successfully.' : 'UTR submitted.' }}
-                </p>
-                <p class="mt-0.5 text-sm text-brand-ink-secondary">Your payment will be verified shortly.</p>
-                <p class="mt-1 text-xs text-brand-ink-muted">UTR: {{ submittedUtr() }}</p>
-                <button type="button" class="mt-2 text-xs font-semibold text-brand-red hover:underline" (click)="startEditUtr()">
-                  Entered the wrong number? Submit again
-                </button>
-              </div>
-            </div>
-          } @else {
-            <label class="field-label" for="utr">12-digit UTR / Transaction Reference</label>
-            <input
-              id="utr"
-              type="text"
-              inputmode="numeric"
-              autocomplete="off"
-              maxlength="12"
-              class="input-field"
-              placeholder="e.g. 405123456789"
-              [value]="utr()"
-              (input)="onUtrInput($event)"
-              (blur)="utrTouched.set(true)"
-            />
-            @if (utrTouched() && !utrValid()) {
-              <p class="field-error">Enter the 12-digit numeric UTR from your UPI app's payment receipt.</p>
-            }
-            @if (submitError()) {
-              <p class="field-error flex items-center gap-1.5" role="alert">
-                <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" />
-                {{ submitError() }}
-              </p>
-            }
-            <button
-              type="button"
-              class="btn-primary mt-3 w-full"
-              [disabled]="submitting() || !utrValid()"
-              (click)="submitUtr()"
-            >
-              {{ submitting() ? 'Submitting…' : 'Submit UTR for Verification' }}
-            </button>
-          }
-        </div>
-      }
-    </div>
-  }
 
   <div class="mt-8 flex gap-3">
     <a routerLink="/" class="btn-primary">Continue Shopping</a>

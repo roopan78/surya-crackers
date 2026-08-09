@@ -1,8 +1,6 @@
 import { PaymentProviderType } from '@prisma/client';
-import { env } from '../config/env';
 import { ApiError } from '../utils/ApiError';
 import { getPaymentProvider } from '../providers/payment/payment-provider.factory';
-import { isUpiConfigured } from './upi.service';
 import { PaymentInitiationParams, PaymentInitiationResult } from '../providers/payment/payment-provider.interface';
 
 export interface PaymentMethodInfo {
@@ -12,38 +10,27 @@ export interface PaymentMethodInfo {
   message?: string;
 }
 
-const PHONEPE_UNAVAILABLE_MESSAGE =
-  'Online payment will be available shortly. We are currently completing our payment gateway verification.';
-const UPI_UNAVAILABLE_MESSAGE = 'UPI payment is temporarily unavailable. Please select Cash on Pickup.';
+const ONLINE_PAYMENT_WITHDRAWN_MESSAGE =
+  'Online payment is not available. Orders are confirmed by our team and settled at pickup.';
 
+/**
+ * Online payment (UPI QR and PhonePe) was withdrawn: following the 2018 Supreme
+ * Court restrictions on firecracker sales, orders are taken as enquiries, put on
+ * hold and confirmed by staff, with payment collected in person at pickup.
+ *
+ * The UPI_DIRECT / PHONEPE enum values are deliberately kept — historical orders
+ * still reference them — they are simply no longer offered or accepted.
+ */
 export function getAvailableMethods(): PaymentMethodInfo[] {
-  const upiAvailable = isUpiConfigured();
-  return [
-    { provider: PaymentProviderType.CASH_ON_PICKUP, label: 'Cash on Pickup', available: true },
-    {
-      provider: PaymentProviderType.UPI_DIRECT,
-      label: 'UPI / QR Payment',
-      available: upiAvailable,
-      ...(upiAvailable ? {} : { message: UPI_UNAVAILABLE_MESSAGE }),
-    },
-    {
-      provider: PaymentProviderType.PHONEPE,
-      label: 'PhonePe',
-      available: env.PHONEPE_ENABLED,
-      ...(env.PHONEPE_ENABLED ? {} : { message: PHONEPE_UNAVAILABLE_MESSAGE }),
-    },
-  ];
+  return [{ provider: PaymentProviderType.CASH_ON_PICKUP, label: 'Cash on Pickup', available: true }];
 }
 
 export async function initiatePayment(
   providerType: PaymentProviderType,
   params: PaymentInitiationParams,
 ): Promise<PaymentInitiationResult> {
-  if (providerType === PaymentProviderType.PHONEPE && !env.PHONEPE_ENABLED) {
-    throw ApiError.badRequest('PhonePe is not available yet. Please select Cash on Pickup.');
-  }
-  if (providerType === PaymentProviderType.UPI_DIRECT && !isUpiConfigured()) {
-    throw ApiError.badRequest('UPI payment is not available yet. Please select Cash on Pickup.');
+  if (providerType !== PaymentProviderType.CASH_ON_PICKUP) {
+    throw ApiError.badRequest(ONLINE_PAYMENT_WITHDRAWN_MESSAGE);
   }
 
   const provider = getPaymentProvider(providerType);
