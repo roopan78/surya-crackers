@@ -9,6 +9,17 @@
     </span>
   }
 
+  <!-- Sits over the image rather than in the footer so the price and stepper
+       still fit side by side on a two-column mobile grid. -->
+  @if (quantity() > 0) {
+    <span
+      class="animate-accordion-in absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 shadow-sm"
+    >
+      <lucide-icon [img]="CheckIcon" class="h-2.5 w-2.5" aria-hidden="true" />
+      Added
+    </span>
+  }
+
   <div class="aspect-square w-full overflow-hidden bg-brand-mist">
     <img
       [src]="product().imageUrl | cdnImage: 600"
@@ -22,16 +33,31 @@
     <h3 class="line-clamp-2 text-sm font-semibold text-brand-charcoal">{{ product().name }}</h3>
     <p class="text-xs text-brand-ink-muted">{{ product().boxQuantity }}</p>
 
-    <div class="mt-auto flex items-center justify-between pt-3">
+    <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
       <span class="font-display text-lg font-bold text-brand-charcoal">₹{{ product().price }}</span>
-      <button
-        type="button"
-        class="flex items-center gap-1.5 rounded-xl bg-brand-mist px-3 py-2 text-xs font-semibold text-brand-charcoal transition duration-200 hover:bg-brand-red hover:text-white"
-        (click)="addToCart($event)"
-      >
-        <lucide-icon [img]="ShoppingCartIcon" class="h-3.5 w-3.5" />
-        Add
-      </button>
+
+      @if (quantity() === 0) {
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-xl bg-brand-mist px-3 py-2 text-xs font-semibold text-brand-charcoal transition duration-200 hover:bg-brand-red hover:text-white"
+          [attr.aria-label]="'Add ' + product().name + ' to cart'"
+          (click)="addToCart($event)"
+        >
+          <lucide-icon [img]="ShoppingCartIcon" class="h-3.5 w-3.5" aria-hidden="true" />
+          <span class="hidden sm:inline">Add to Cart</span>
+          <span class="sm:hidden">Add</span>
+        </button>
+      } @else {
+        <!-- Cancels the anchor's navigation for anything clicked inside. -->
+        <div
+          class="animate-accordion-in"
+          role="group"
+          [attr.aria-label]="'Quantity of ' + product().name + ' in cart'"
+          (click)="stopCardNavigation($event)"
+        >
+          <app-quantity-stepper [quantity]="quantity()" (increment)="increment()" (decrement)="decrement()" />
+        </div>
+      }
     </div>
   </div>
 </a>
