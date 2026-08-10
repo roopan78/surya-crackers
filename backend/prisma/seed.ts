@@ -100,7 +100,7 @@ async function main() {
     create: {
       id: 1,
       shopName: 'Surya Crackers',
-      address: '123 Fireworks Bazaar Road, Sivakasi, Tamil Nadu, India',
+      addresses: ['123 Fireworks Bazaar Road, Sivakasi, Tamil Nadu, India'],
       licenseNumber: 'TN-FW-LICENSE-000000',
       phone: '+91 90000 00000',
       whatsappNumber: '919000000000',

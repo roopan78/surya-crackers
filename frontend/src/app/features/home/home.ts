@@ -163,9 +163,11 @@ export class Home {
         logo: 'https://suryacrackers.shop/icons/icon-512.png',
         image: 'https://suryacrackers.shop/og-default.png',
         telephone: footer.phone,
+        // Schema.org expects one address per LocalBusiness, so the first entry
+        // is the primary location rather than every branch concatenated.
         address: {
           '@type': 'PostalAddress',
-          streetAddress: footer.address,
+          streetAddress: footer.addresses[0] ?? '',
           addressCountry: 'IN',
         },
         areaServed: 'Tamil Nadu',

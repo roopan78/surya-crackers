@@ -6,7 +6,7 @@ import { ApiSuccess, Category, Product, CarouselBanner, FooterConfig } from '../
 
 const EMPTY_FOOTER_CONFIG: FooterConfig = {
   shopName: '',
-  address: '',
+  addresses: [],
   licenseNumber: '',
   phone: '',
   whatsappNumber: '',

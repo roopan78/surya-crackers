@@ -60,7 +60,7 @@ export function toBannerDTO(banner: CarouselBanner) {
 export function toFooterDTO(footer: FooterConfig) {
   return {
     shopName: footer.shopName,
-    address: footer.address,
+    addresses: footer.addresses,
     licenseNumber: footer.licenseNumber,
     phone: footer.phone,
     whatsappNumber: footer.whatsappNumber,

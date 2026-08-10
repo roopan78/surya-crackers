@@ -13,11 +13,41 @@
       </div>
 
       <div>
-        <label class="field-label" for="shop-address">Address</label>
-        <textarea id="shop-address" rows="2" formControlName="address" class="input-field resize-none"></textarea>
-        @if (form.controls.address.invalid && form.controls.address.touched) {
-          <p class="field-error">Address is required.</p>
+        <label class="field-label">Addresses</label>
+        <p class="-mt-1 mb-2 text-xs text-brand-ink-muted">
+          Add one entry per shop — each appears as its own block in the storefront footer.
+        </p>
+
+        <div class="flex flex-col gap-2" formArrayName="addresses">
+          @for (control of addresses.controls; track $index) {
+            <div class="flex items-start gap-2">
+              <textarea
+                [formControlName]="$index"
+                rows="2"
+                class="input-field resize-none"
+                [attr.aria-label]="'Address ' + ($index + 1)"
+                placeholder="Street, area, city - PIN"
+              ></textarea>
+              <button
+                type="button"
+                class="btn-danger !px-2.5 !py-2"
+                [attr.aria-label]="'Remove address ' + ($index + 1)"
+                (click)="removeAddress($index)"
+              >
+                <lucide-icon [img]="Trash2Icon" class="h-4 w-4" />
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (addresses.invalid && addresses.touched) {
+          <p class="field-error">Every address box needs a value, or remove the empty one.</p>
         }
+
+        <button type="button" class="btn-secondary mt-2 !py-1.5 !text-xs" (click)="addAddress()">
+          <lucide-icon [img]="PlusIcon" class="h-3.5 w-3.5" />
+          Add another address
+        </button>
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

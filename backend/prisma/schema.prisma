@@ -136,7 +136,12 @@ model CarouselBanner {
 model FooterConfig {
   id               Int      @id @default(1)
   shopName         String
-  address          String
+  // One entry per branch. Stored as a list rather than one blob so each shop
+  // renders separately and structured data can name a single primary address.
+  addresses        String[]
+  /// Superseded by `addresses`. Kept (nullable, unread) so the running release
+  /// keeps working across the deploy; safe to drop in a later migration.
+  address          String?
   licenseNumber    String
   phone            String
   whatsappNumber   String

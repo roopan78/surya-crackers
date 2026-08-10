@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, Save, CheckCircle2 } from 'lucide-angular';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule, Save, CheckCircle2, Plus, Trash2 } from 'lucide-angular';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
 import { ToastService } from '../../../shared/services/toast.service';
 
@@ -17,13 +17,16 @@ export class FooterConfiguration implements OnInit {
 
   readonly SaveIcon = Save;
   readonly CheckCircle2Icon = CheckCircle2;
+  readonly PlusIcon = Plus;
+  readonly Trash2Icon = Trash2;
 
   readonly saved = signal(false);
   readonly saving = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
     shopName: ['', [Validators.required]],
-    address: ['', [Validators.required]],
+    // One control per branch — the storefront renders each as its own block.
+    addresses: this.formBuilder.nonNullable.array<FormControl<string>>([this.newAddressControl()]),
     licenseNumber: ['', [Validators.required]],
     phone: ['', [Validators.required]],
     whatsappNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
@@ -33,10 +36,37 @@ export class FooterConfiguration implements OnInit {
     safetyDisclaimer: ['', [Validators.required, Validators.minLength(20)]],
   });
 
+  get addresses() {
+    return this.form.controls.addresses;
+  }
+
+  private newAddressControl(value = ''): FormControl<string> {
+    return this.formBuilder.nonNullable.control(value, [Validators.required]);
+  }
+
+  addAddress(): void {
+    this.addresses.push(this.newAddressControl());
+  }
+
+  /** The last address is kept: the storefront needs at least one. */
+  removeAddress(index: number): void {
+    if (this.addresses.length > 1) {
+      this.addresses.removeAt(index);
+    } else {
+      this.addresses.at(0).setValue('');
+    }
+  }
+
   ngOnInit(): void {
     this.adminCatalogService.getFooterConfig().subscribe({
       next: (config) => {
         if (config) {
+          // A FormArray has to be resized to match the payload before patching,
+          // otherwise extra saved addresses are silently dropped.
+          const saved = config.addresses?.length ? config.addresses : [''];
+          this.addresses.clear();
+          saved.forEach((address) => this.addresses.push(this.newAddressControl(address)));
+
           // patchValue (not setValue) so a config payload missing newly added
           // optional fields can never throw and blank the whole form.
           this.form.patchValue(config);
