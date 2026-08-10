@@ -136,12 +136,6 @@ model CarouselBanner {
 model FooterConfig {
   id               Int      @id @default(1)
   shopName         String
-  // One entry per branch. Stored as a list rather than one blob so each shop
-  // renders separately and structured data can name a single primary address.
-  addresses        String[]
-  /// Superseded by `addresses`. Kept (nullable, unread) so the running release
-  /// keeps working across the deploy; safe to drop in a later migration.
-  address          String?
   licenseNumber    String
   phone            String
   whatsappNumber   String
@@ -152,6 +146,21 @@ model FooterConfig {
   updatedAt        DateTime @updatedAt
 
   @@map("footer_config")
+}
+
+/// One shop location. Every entry is listed in the storefront footer; exactly
+/// one is flagged `isPrimary` and that is the address published in the
+/// LocalBusiness structured data, which accepts a single location.
+model ShopAddress {
+  id        String   @id @default(cuid())
+  address   String
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("shop_addresses")
 }
 
 model OrderLedger {

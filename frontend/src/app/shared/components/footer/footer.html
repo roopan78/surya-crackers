@@ -8,10 +8,10 @@
           </span>
           <span class="font-display text-base font-bold text-brand-charcoal">{{ catalogService.footerConfig().shopName }}</span>
         </div>
-        @for (address of catalogService.footerConfig().addresses; track address) {
+        @for (entry of catalogService.footerConfig().addresses; track entry.address) {
           <p class="mt-4 flex items-start gap-2 whitespace-pre-line text-sm text-brand-ink-secondary">
             <lucide-icon [img]="MapPinIcon" class="mt-0.5 h-4 w-4 shrink-0 text-brand-ink-muted" />
-            {{ address }}
+            {{ entry.address }}
           </p>
         }
         <p class="mt-2 flex items-center gap-2 text-sm text-brand-ink-secondary">

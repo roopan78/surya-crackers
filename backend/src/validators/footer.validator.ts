@@ -5,9 +5,11 @@ export const updateFooterSchema = z.object({
   // At least one branch address; blank entries are dropped rather than rejected,
   // so an admin leaving an empty row behind does not fail the save.
   addresses: z
-    .array(z.string())
-    .transform((entries) => entries.map((entry) => entry.trim()).filter(Boolean))
-    .pipe(z.array(z.string().min(1)).min(1, 'At least one address is required')),
+    .array(z.object({ address: z.string(), isPrimary: z.coerce.boolean().default(false) }))
+    .transform((entries) =>
+      entries.map((entry) => ({ ...entry, address: entry.address.trim() })).filter((entry) => entry.address),
+    )
+    .pipe(z.array(z.object({ address: z.string().min(1), isPrimary: z.boolean() })).min(1, 'At least one address is required')),
   licenseNumber: z.string().min(1, 'licenseNumber is required'),
   phone: z.string().min(1, 'phone is required'),
   whatsappNumber: z.string().min(1, 'whatsappNumber is required'),

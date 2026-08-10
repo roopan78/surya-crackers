@@ -100,7 +100,6 @@ async function main() {
     create: {
       id: 1,
       shopName: 'Surya Crackers',
-      addresses: ['123 Fireworks Bazaar Road, Sivakasi, Tamil Nadu, India'],
       licenseNumber: 'TN-FW-LICENSE-000000',
       phone: '+91 90000 00000',
       whatsappNumber: '919000000000',
@@ -108,6 +107,13 @@ async function main() {
         'Fireworks are for use by adults 18+ only. Follow all local regulations, read safety instructions on every product, and supervise children at all times.',
     },
   });
+
+  // Idempotent like the rest of the seed: only creates a location when none exist.
+  if ((await prisma.shopAddress.count()) === 0) {
+    await prisma.shopAddress.create({
+      data: { address: '123 Fireworks Bazaar Road, Sivakasi, Tamil Nadu, India', isPrimary: true, sortOrder: 0 },
+    });
+  }
   console.log('Footer configuration ready.');
 }
 

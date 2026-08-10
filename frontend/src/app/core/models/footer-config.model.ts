@@ -1,7 +1,13 @@
+export interface ShopAddress {
+  address: string;
+  /** The location published in the LocalBusiness structured data. */
+  isPrimary: boolean;
+}
+
 export interface FooterConfig {
   shopName: string;
-  /** One entry per branch; the first is treated as the primary location. */
-  addresses: string[];
+  /** One entry per branch; exactly one is flagged as the primary location. */
+  addresses: ShopAddress[];
   licenseNumber: string;
   phone: string;
   whatsappNumber: string;

@@ -163,11 +163,11 @@ export class Home {
         logo: 'https://suryacrackers.shop/icons/icon-512.png',
         image: 'https://suryacrackers.shop/og-default.png',
         telephone: footer.phone,
-        // Schema.org expects one address per LocalBusiness, so the first entry
-        // is the primary location rather than every branch concatenated.
+        // Schema.org expects one address per LocalBusiness, so the branch the
+        // admin flagged as primary is published rather than all of them joined.
         address: {
           '@type': 'PostalAddress',
-          streetAddress: footer.addresses[0] ?? '',
+          streetAddress: (footer.addresses.find((entry) => entry.isPrimary) ?? footer.addresses[0])?.address ?? '',
           addressCountry: 'IN',
         },
         areaServed: 'Tamil Nadu',

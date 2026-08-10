@@ -1,4 +1,4 @@
-import { Category, CarouselBanner, FooterConfig, OrderLedger, Product, User } from '@prisma/client';
+import { Category, CarouselBanner, FooterConfig, OrderLedger, Product, ShopAddress, User } from '@prisma/client';
 
 /**
  * Prisma's Decimal fields (de)serialize as strings/objects over JSON by default.
@@ -57,10 +57,10 @@ export function toBannerDTO(banner: CarouselBanner) {
   };
 }
 
-export function toFooterDTO(footer: FooterConfig) {
+export function toFooterDTO(footer: FooterConfig, addresses: ShopAddress[] = []) {
   return {
     shopName: footer.shopName,
-    addresses: footer.addresses,
+    addresses: addresses.map((entry) => ({ address: entry.address, isPrimary: entry.isPrimary })),
     licenseNumber: footer.licenseNumber,
     phone: footer.phone,
     whatsappNumber: footer.whatsappNumber,

@@ -9,17 +9,47 @@ const SINGLETON_ID = 1;
 
 // GET /api/admin/footer-config
 export const getFooterConfig = asyncHandler(async (_req: Request, res: Response) => {
-  const footer = await prisma.footerConfig.findUnique({ where: { id: SINGLETON_ID } });
-  return sendSuccess(res, footer ? toFooterDTO(footer) : null);
+  const [footer, addresses] = await Promise.all([
+    prisma.footerConfig.findUnique({ where: { id: SINGLETON_ID } }),
+    prisma.shopAddress.findMany({ orderBy: { sortOrder: 'asc' } }),
+  ]);
+  return sendSuccess(res, footer ? toFooterDTO(footer, addresses) : null);
 });
 
 // PUT /api/admin/footer-config — upserts the single row
 export const updateFooterConfig = asyncHandler(async (req: Request, res: Response) => {
-  const input = req.body as UpdateFooterInput;
-  const footer = await prisma.footerConfig.upsert({
-    where: { id: SINGLETON_ID },
-    update: input,
-    create: { id: SINGLETON_ID, ...input },
+  const { addresses, ...config } = req.body as UpdateFooterInput;
+
+  // The list is replaced wholesale rather than diffed: it is a short, ordered
+  // list edited as one form, and a transaction keeps the storefront from ever
+  // reading a half-written set of addresses.
+  const [footer, savedAddresses] = await prisma.$transaction(async (tx) => {
+    const saved = await tx.footerConfig.upsert({
+      where: { id: SINGLETON_ID },
+      update: config,
+      create: { id: SINGLETON_ID, ...config },
+    });
+
+    await tx.shopAddress.deleteMany({});
+    await tx.shopAddress.createMany({
+      data: withExactlyOnePrimary(addresses).map((entry, index) => ({ ...entry, sortOrder: index })),
+    });
+
+    return [saved, await tx.shopAddress.findMany({ orderBy: { sortOrder: 'asc' } })] as const;
   });
-  return sendSuccess(res, toFooterDTO(footer));
+
+  return sendSuccess(res, toFooterDTO(footer, savedAddresses));
 });
+
+/**
+ * Structured data publishes a single location, so exactly one address must
+ * carry the flag: the first one marked wins, and if none is marked the first
+ * address becomes primary rather than leaving the site with no SEO address.
+ */
+function withExactlyOnePrimary(
+  addresses: UpdateFooterInput['addresses'],
+): { address: string; isPrimary: boolean }[] {
+  const primaryIndex = addresses.findIndex((entry) => entry.isPrimary);
+  const chosen = primaryIndex === -1 ? 0 : primaryIndex;
+  return addresses.map((entry, index) => ({ address: entry.address, isPrimary: index === chosen }));
+}
