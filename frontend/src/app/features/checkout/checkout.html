@@ -44,36 +44,21 @@
           <span class="font-display text-xl font-extrabold text-brand-charcoal">Total: ₹{{ cartService.grandTotal() }}</span>
         </div>
 
-        <!-- Payment Method -->
-        <div class="glass-card-solid p-5">
-          <h2 class="text-lg font-bold text-brand-charcoal">Payment Method</h2>
-          <div class="mt-4 flex flex-col gap-3">
-            @for (method of paymentMethods(); track method.provider) {
-              <button
-                type="button"
-                class="glass-card-solid flex items-start gap-3 p-4 text-left transition"
-                [class.!border-brand-red]="selectedProvider() === method.provider"
-                [class.opacity-50]="!method.available"
-                [class.cursor-not-allowed]="!method.available"
-                (click)="selectProvider(method)"
-              >
-                <span
-                  class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
-                  [class.border-brand-red]="selectedProvider() === method.provider"
-                  [class.border-black/15]="selectedProvider() !== method.provider"
-                >
-                  @if (selectedProvider() === method.provider) {
-                    <span class="h-2.5 w-2.5 rounded-full bg-brand-red"></span>
-                  }
-                </span>
-                <span class="flex-1">
-                  <span class="block text-sm font-semibold text-brand-charcoal">{{ method.label }}</span>
-                  @if (method.message) {
-                    <span class="mt-0.5 block text-xs text-brand-ink-muted">{{ method.message }}</span>
-                  }
-                </span>
-              </button>
-            }
+        <!--
+          No online payment is collected: the Supreme Court bars selling firecrackers
+          over e-commerce, so the order is placed on hold for staff to confirm by phone
+          and settled in cash at the counter.
+        -->
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <div class="flex items-start gap-3">
+            <lucide-icon [img]="ClockIcon" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <p class="text-sm font-bold text-brand-charcoal">Your order will be placed on hold</p>
+              <p class="mt-1 text-sm leading-relaxed text-brand-ink-secondary">
+                We don't take payment online. Once you place this order, our team will contact you shortly to
+                confirm the items and your pickup time. You pay in cash at our store when you collect the order.
+              </p>
+            </div>
           </div>
         </div>
       </div>
