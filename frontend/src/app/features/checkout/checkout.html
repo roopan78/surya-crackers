@@ -46,19 +46,14 @@
 
         <!--
           No online payment is collected: the Supreme Court bars selling firecrackers
-          over e-commerce, so the order is placed on hold for staff to confirm by phone
-          and settled in cash at the counter.
+          over e-commerce, so the order is only placed on hold here. How payment is
+          actually collected is left to the staff who follow up, so this says nothing
+          about it.
         -->
         <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <div class="flex items-start gap-3">
-            <lucide-icon [img]="ClockIcon" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-            <div>
-              <p class="text-sm font-bold text-brand-charcoal">Your order will be placed on hold</p>
-              <p class="mt-1 text-sm leading-relaxed text-brand-ink-secondary">
-                We don't take payment online. Once you place this order, our team will contact you shortly to
-                confirm the items and your pickup time. You pay in cash at our store when you collect the order.
-              </p>
-            </div>
+          <div class="flex items-center gap-3">
+            <lucide-icon [img]="ClockIcon" class="h-5 w-5 shrink-0 text-amber-600" />
+            <p class="text-sm font-bold text-brand-charcoal">Your order will be placed on hold</p>
           </div>
         </div>
       </div>

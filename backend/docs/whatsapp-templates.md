@@ -49,7 +49,7 @@ Thank you.
 | `{{2}}` | order_number | SC-20260802-4F2A9C |
 | `{{3}}` | order_date | 02 Aug 2026 |
 | `{{4}}` | amount | 1250.00 |
-| `{{5}}` | payment_method | Cash on Pickup |
+| `{{5}}` | payment_method | To be confirmed by our team |
 | `{{6}}` | payment_status | Pending |
 | `{{7}}` | pickup_date | 05 Aug 2026 |
 | `{{8}}` | pickup_time | 5:00 PM |
@@ -86,7 +86,7 @@ Surya Crackers
 | --- | --- | --- |
 | `{{1}}` | customer_name | Roopan |
 | `{{2}}` | order_number | SC-20260802-4F2A9C |
-| `{{3}}` | reason | UPI payment is not available yet. |
+| `{{3}}` | reason | We could not process your order. |
 | `{{4}}` | support_phone | +91 9842121720 |
 
 ---

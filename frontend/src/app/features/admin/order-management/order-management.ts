@@ -3,8 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package } from 'lucide-angular';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
-import { Order, OrderStatus } from '../../../core/models';
+import { Order, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
+
+const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
+  CASH_ON_PICKUP: 'Cash',
+  UPI_DIRECT: 'Online',
+  PHONEPE: 'PhonePe',
+};
 
 const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
   { value: '', label: 'All Statuses' },
@@ -80,28 +86,25 @@ export class OrderManagement implements OnInit {
     });
   }
 
-  /**
-   * Cash orders are marked paid at pickup; UPI orders are marked paid once the
-   * submitted UTR (or a bank credit that arrived without one) is verified
-   * against the account statement.
-   */
-  canMarkPaid(order: Order): boolean {
-    if (order.paymentProvider === 'CASH_ON_PICKUP') {
-      return order.paymentStatus === 'PENDING';
-    }
-    if (order.paymentProvider === 'UPI_DIRECT') {
-      return order.paymentStatus === 'PENDING' || order.paymentStatus === 'AWAITING_VERIFICATION';
-    }
-    return false;
+  /** Anything not yet settled can be recorded as paid, whatever the method. */
+  canRecordPayment(order: Order): boolean {
+    return order.paymentStatus !== 'PAID' && order.paymentStatus !== 'REFUNDED';
   }
 
-  confirmPaymentManually(id: string): void {
-    this.orderService.confirmPaymentManually(id).subscribe({
+  /** Blank until staff record one — an order arrives with no method chosen. */
+  providerLabel(order: Order): string {
+    return order.paymentProvider ? PROVIDER_LABELS[order.paymentProvider] : 'Method not decided';
+  }
+
+  recordPayment(id: string, paymentProvider: RecordablePaymentProvider): void {
+    this.orderService.recordPayment(id, paymentProvider).subscribe({
       next: () => {
-        this.toastService.success('Payment marked as received.');
+        this.toastService.success(
+          paymentProvider === 'CASH_ON_PICKUP' ? 'Recorded as paid in cash.' : 'Recorded as paid online.',
+        );
         this.loadOrders();
       },
-      error: () => this.toastService.error('Could not update payment status — please try again.'),
+      error: () => this.toastService.error('Could not record the payment — please try again.'),
     });
   }
 }

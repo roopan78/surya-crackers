@@ -13,13 +13,15 @@ export const orderItemSchema = z.object({
 // customer's identity instead comes from req.user (their JWT) — whether they're
 // actually required is a decision order.controller.ts makes once it knows if
 // the request is authenticated, which a Zod schema can't see.
+// No paymentProvider: checkout takes no payment and offers no choice of method.
+// The order is stored on hold and staff decide how it is paid (see
+// confirmPaymentSchema) when they call the customer to confirm it.
 export const createOrderSchema = z.object({
   guestName: z.string().min(1).optional(),
   guestMobile: z.string().min(10).optional(),
   pickupDate: z.preprocess((v) => (v === '' ? undefined : v), z.coerce.date().optional()),
   pickupTime: z.string().optional(),
   notes: z.string().optional(),
-  paymentProvider: z.nativeEnum(PaymentProviderType),
   items: z.array(orderItemSchema).min(1, 'At least one item is required'),
 });
 
@@ -31,9 +33,12 @@ export const orderNumberParamsSchema = z.object({
   orderNumber: z.string().min(1),
 });
 
-// UTRs (UPI transaction reference numbers) are exactly 12 digits.
-export const submitUtrSchema = z.object({
-  utrNumber: z.string().regex(/^\d{12}$/, 'UTR number must be exactly 12 digits'),
+// How staff took the money, recorded at the same moment they mark it received.
+// PHONEPE is not offered: it was never live, and no staff-arranged payment
+// settles through it.
+export const confirmPaymentSchema = z.object({
+  paymentProvider: z.enum([PaymentProviderType.CASH_ON_PICKUP, PaymentProviderType.UPI_DIRECT]),
+  paymentReference: z.string().max(64).optional(),
 });
 
 export const listOrdersQuerySchema = z.object({
@@ -50,4 +55,4 @@ export const updateOrderStatusSchema = z.object({
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type ListOrdersQuery = z.infer<typeof listOrdersQuerySchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
-export type SubmitUtrInput = z.infer<typeof submitUtrSchema>;
+export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;

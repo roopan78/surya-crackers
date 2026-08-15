@@ -15,8 +15,8 @@
       <div>
         <p class="text-sm font-bold text-brand-charcoal">Your order is on hold</p>
         <p class="mt-1 text-sm leading-relaxed text-brand-ink-secondary">
-          Our team will contact you shortly to confirm your order, the items and your pickup time. Payment is
-          collected in cash when you collect your order at our store.
+          Our team will contact you shortly to confirm your order, the items, your pickup time and how you can
+          pay. The order is confirmed only once they've spoken to you.
         </p>
       </div>
     </div>
@@ -44,7 +44,8 @@
         <p class="text-sm font-semibold text-brand-charcoal">
           @if (displayAmount() !== null) { Estimated total: ₹{{ displayAmount() }} }
         </p>
-        <p class="mt-0.5 text-sm text-brand-ink-secondary">Cash on Pickup — payable at the store.</p>
+        <!-- Staff decide cash-at-counter vs. online per order, so no method is named here. -->
+        <p class="mt-0.5 text-sm text-brand-ink-secondary">Our team will confirm the payment method with you.</p>
       </div>
     </div>
   </div>

@@ -59,6 +59,10 @@
                 {{ order.pickupDate ? (order.pickupDate | date: 'mediumDate') : '—' }}
                 @if (order.pickupTime) { · {{ order.pickupTime }} }
               </td>
+              <!--
+                Orders arrive with no payment method. Staff pick one here at the
+                moment they take the money, which is also what marks it paid.
+              -->
               <td class="px-5 py-3" (click)="$event.stopPropagation()">
                 <div class="flex items-center gap-2">
                   <span
@@ -72,16 +76,28 @@
                   >
                     {{ order.paymentStatus }}
                   </span>
-                  @if (canMarkPaid(order)) {
+                  <span class="text-[11px] text-brand-ink-muted">{{ providerLabel(order) }}</span>
+                </div>
+                @if (canRecordPayment(order)) {
+                  <div class="mt-1.5 flex items-center gap-1.5">
+                    <span class="text-[11px] text-brand-ink-muted">Mark paid:</span>
                     <button
                       type="button"
                       class="text-xs font-semibold text-brand-red hover:underline"
-                      (click)="confirmPaymentManually(order.id)"
+                      (click)="recordPayment(order.id, 'CASH_ON_PICKUP')"
                     >
-                      Mark as Paid
+                      Cash
                     </button>
-                  }
-                </div>
+                    <span class="text-[11px] text-brand-ink-muted">/</span>
+                    <button
+                      type="button"
+                      class="text-xs font-semibold text-brand-red hover:underline"
+                      (click)="recordPayment(order.id, 'UPI_DIRECT')"
+                    >
+                      Online
+                    </button>
+                  </div>
+                }
                 @if (order.utrNumber) {
                   <p class="mt-1 text-[11px] text-brand-ink-muted">UTR: {{ order.utrNumber }}</p>
                 }

@@ -2,14 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiSuccess, CartItem, Order, OrderDetails, PaymentProviderType, PaymentStatus } from '../models';
+import { ApiSuccess, CartItem, Order, OrderDetails, PaymentStatus } from '../models';
 
 export interface CreateOrderResult {
   orderNumber: string;
   id: string;
   estimatedTotal: number;
   paymentStatus: PaymentStatus;
-  redirectUrl?: string;
 }
 
 interface CreateOrderPayload {
@@ -18,7 +17,6 @@ interface CreateOrderPayload {
   pickupDate?: string;
   pickupTime?: string;
   notes?: string;
-  paymentProvider: PaymentProviderType;
   items: {
     productId: string;
     name: string;
@@ -28,23 +26,17 @@ interface CreateOrderPayload {
   }[];
 }
 
-/** Persists a checkout as a real order row and kicks off payment (Cash on Pickup, or PhonePe once live). */
+/** Persists a checkout as an on-hold order row. No payment is taken — staff arrange that when they confirm. */
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly http = inject(HttpClient);
 
-  createOrder(
-    details: OrderDetails,
-    items: CartItem[],
-    paymentProvider: PaymentProviderType,
-    isRegisteredCustomer: boolean,
-  ): Observable<CreateOrderResult> {
+  createOrder(details: OrderDetails, items: CartItem[], isRegisteredCustomer: boolean): Observable<CreateOrderResult> {
     const payload: CreateOrderPayload = {
       ...(isRegisteredCustomer ? {} : { guestName: details.name, guestMobile: details.mobile }),
       pickupDate: details.pickupDate,
       pickupTime: details.pickupTime,
       notes: details.notes,
-      paymentProvider,
       items: items.map((item) => ({
         productId: item.product.id,
         name: item.product.name,

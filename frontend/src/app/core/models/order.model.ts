@@ -25,8 +25,10 @@ export interface Order {
   estimatedTotal: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
-  paymentProvider: PaymentProviderType;
+  /** Null until staff record how the order was paid — checkout decides nothing. */
+  paymentProvider: PaymentProviderType | null;
   paymentReference: string | null;
+  /** Only ever set on historical orders from the withdrawn UPI flow. */
   utrNumber: string | null;
   createdAt: string;
   updatedAt: string;

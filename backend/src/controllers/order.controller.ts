@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Prisma, PaymentProviderType, PaymentStatus } from '@prisma/client';
+import { Prisma, PaymentStatus } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
@@ -7,15 +7,20 @@ import { sendSuccess } from '../utils/ApiResponse';
 import { toOrderDTO } from '../models/dto';
 import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { generateOrderNumber } from '../utils/orderNumber';
-import { initiatePayment } from '../services/payment.service';
-import { generateUpiPaymentDetails } from '../services/upi.service';
 import { queueOrderNotification } from '../services/notification.service';
-import { CreateOrderInput, ListOrdersQuery, SubmitUtrInput, UpdateOrderStatusInput } from '../validators/order.validator';
+import { ConfirmPaymentInput, CreateOrderInput, ListOrdersQuery, UpdateOrderStatusInput } from '../validators/order.validator';
 
 const MAX_ORDER_NUMBER_ATTEMPTS = 5;
 const includeCustomer = { customer: true } satisfies Prisma.OrderLedgerInclude;
 
-// POST /api/orders — public (guest) or authenticated (registered customer)
+/**
+ * POST /api/orders — public (guest) or authenticated (registered customer).
+ *
+ * Takes no payment: the 2018 Supreme Court ruling bars selling firecrackers over
+ * e-commerce, so this only records the request on hold. Staff confirm the order
+ * by phone and decide there how it is paid — hence no payment provider, no
+ * payment initiation and no redirect URL.
+ */
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   const input = req.body as CreateOrderInput;
   const customerId = req.user?.sub ?? null;
@@ -40,12 +45,6 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     const orderNumber = generateOrderNumber();
 
     try {
-      const payment = await initiatePayment(input.paymentProvider, {
-        orderId: orderNumber,
-        orderNumber,
-        amount: estimatedTotal,
-      });
-
       const order = await prisma.orderLedger.create({
         data: {
           orderNumber,
@@ -57,9 +56,9 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
           notes: input.notes,
           items: input.items as unknown as Prisma.InputJsonValue,
           estimatedTotal,
-          paymentProvider: input.paymentProvider,
-          paymentStatus: payment.status,
-          paymentReference: payment.reference,
+          // Both left for staff: the method is undecided and nothing is paid.
+          paymentProvider: null,
+          paymentStatus: PaymentStatus.PENDING,
         },
       });
 
@@ -83,22 +82,20 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
           orderNumber: order.orderNumber,
           id: order.id,
           estimatedTotal,
-          paymentStatus: payment.status,
-          redirectUrl: payment.redirectUrl,
+          paymentStatus: order.paymentStatus,
         },
         201,
       );
     } catch (error) {
       const isOrderNumberCollision = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
       if (!isOrderNumberCollision) {
-        // Genuine failure (payment initiation rejected, database unavailable…):
-        // tell the customer their order did not go through, then let the error
-        // middleware produce the HTTP response as before.
+        // Genuine failure (database unavailable…): tell the customer their order
+        // did not go through, then let the error middleware produce the HTTP
+        // response as before.
         queueOrderNotification('ORDER_FAILED', {
           orderNumber,
           ...contact,
           estimatedTotal,
-          paymentProvider: input.paymentProvider,
           reason: error instanceof ApiError ? error.message : 'We could not process your order.',
         });
         throw error;
@@ -106,62 +103,6 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     }
   }
   throw ApiError.internal('Failed to generate a unique order number, please retry');
-});
-
-// GET /api/orders/:orderNumber/upi-details — public (guests pay too); serves the
-// dynamic QR / upi:// intent link for the order-confirmation page.
-export const getUpiDetails = asyncHandler(async (req: Request, res: Response) => {
-  const order = await prisma.orderLedger.findUnique({ where: { orderNumber: req.params.orderNumber } });
-  if (!order) {
-    throw ApiError.notFound('Order not found');
-  }
-  if (order.paymentProvider !== PaymentProviderType.UPI_DIRECT) {
-    throw ApiError.badRequest('This order does not use UPI payment');
-  }
-
-  const amount = Number(order.estimatedTotal);
-  const { upiUrl, qrDataUrl, vpa, businessName } = await generateUpiPaymentDetails(order.orderNumber, amount);
-
-  return sendSuccess(res, {
-    upiUrl,
-    qrDataUrl,
-    vpa,
-    businessName,
-    orderNumber: order.orderNumber,
-    amount,
-    // Lets the confirmation page restore its state after a hard refresh
-    // (already-submitted UTR, already-verified payment).
-    paymentStatus: order.paymentStatus,
-    utrNumber: order.utrNumber,
-  });
-});
-
-// POST /api/orders/:orderNumber/submit-utr — customer reports their UPI
-// transaction reference; staff verify it against the bank credit before
-// marking the order PAID.
-export const submitUtr = asyncHandler(async (req: Request, res: Response) => {
-  const { utrNumber } = req.body as SubmitUtrInput;
-
-  const order = await prisma.orderLedger.findUnique({ where: { orderNumber: req.params.orderNumber } });
-  if (!order) {
-    throw ApiError.notFound('Order not found');
-  }
-  if (order.paymentProvider !== PaymentProviderType.UPI_DIRECT) {
-    throw ApiError.badRequest('This order does not use UPI payment');
-  }
-  if (order.paymentStatus === PaymentStatus.PAID) {
-    throw ApiError.conflict('Payment for this order is already confirmed');
-  }
-
-  // Re-submission while AWAITING_VERIFICATION is allowed on purpose — it lets
-  // the customer correct a mistyped UTR before staff verify it.
-  const updated = await prisma.orderLedger.update({
-    where: { orderNumber: order.orderNumber },
-    data: { utrNumber, paymentStatus: PaymentStatus.AWAITING_VERIFICATION },
-    include: includeCustomer,
-  });
-
-  return sendSuccess(res, toOrderDTO(updated));
 });
 
 // GET /api/orders/mine — registered customers only
@@ -216,18 +157,30 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
   return sendSuccess(res, toOrderDTO(order));
 });
 
-// PATCH /api/admin/orders/:id/payment — manual "Mark as Paid" (Cash on Pickup settlement)
+/**
+ * PATCH /api/admin/orders/:id/payment — staff record a payment they collected.
+ *
+ * The method comes in with the request rather than off the order: nothing is
+ * decided at checkout, so this call is where an order first learns whether it
+ * was settled in cash at the counter or by an online transfer staff arranged.
+ */
 export const confirmPaymentManually = asyncHandler(async (req: Request, res: Response) => {
+  const { paymentProvider, paymentReference } = req.body as ConfirmPaymentInput;
+
   const existing = await prisma.orderLedger.findUnique({ where: { id: req.params.id } });
   if (!existing) {
     throw ApiError.notFound('Order not found');
+  }
+  if (existing.paymentStatus === PaymentStatus.PAID) {
+    throw ApiError.conflict('Payment for this order is already recorded');
   }
 
   const order = await prisma.orderLedger.update({
     where: { id: req.params.id },
     data: {
+      paymentProvider,
       paymentStatus: PaymentStatus.PAID,
-      paymentReference: `MANUAL-${req.user?.sub ?? 'admin'}`,
+      paymentReference: paymentReference?.trim() || `MANUAL-${req.user?.sub ?? 'admin'}`,
     },
     include: includeCustomer,
   });

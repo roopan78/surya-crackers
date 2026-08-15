@@ -34,7 +34,8 @@ export interface OrderNotificationContext {
   customerName?: string | null;
   customerMobile?: string | null;
   estimatedTotal?: number;
-  paymentProvider?: PaymentProviderType;
+  /** Null on a fresh order: staff have not decided the method yet. */
+  paymentProvider?: PaymentProviderType | null;
   paymentStatus?: PaymentStatus;
   pickupDate?: Date | string | null;
   pickupTime?: string | null;
@@ -51,9 +52,12 @@ export interface NotificationResult {
 
 const PAYMENT_METHOD_LABELS: Record<PaymentProviderType, string> = {
   CASH_ON_PICKUP: 'Cash on Pickup',
-  UPI_DIRECT: 'UPI / QR Payment',
+  UPI_DIRECT: 'Online Payment',
   PHONEPE: 'PhonePe',
 };
+
+/** A new order has no method yet — staff settle it on the confirmation call. */
+const PAYMENT_METHOD_UNDECIDED = 'To be confirmed by our team';
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   PENDING: 'Pending',
@@ -109,7 +113,7 @@ const EVENT_REGISTRY: Partial<Record<NotificationEvent, EventDefinition>> = {
       context.orderNumber, // {{2}} order_number
       formatDate(context.createdAt ?? new Date()), // {{3}} order_date
       formatAmount(context.estimatedTotal), // {{4}} amount
-      context.paymentProvider ? PAYMENT_METHOD_LABELS[context.paymentProvider] : 'Not selected', // {{5}} payment_method
+      context.paymentProvider ? PAYMENT_METHOD_LABELS[context.paymentProvider] : PAYMENT_METHOD_UNDECIDED, // {{5}} payment_method
       context.paymentStatus ? PAYMENT_STATUS_LABELS[context.paymentStatus] : 'Pending', // {{6}} payment_status
       formatDate(context.pickupDate), // {{7}} pickup_date
       context.pickupTime?.trim() || 'To be confirmed', // {{8}} pickup_time

@@ -27,7 +27,8 @@
             }
           </div>
           <div class="mt-3 flex items-center justify-between border-t border-black/5 pt-3">
-            <span class="text-xs text-brand-ink-muted">{{ providerLabels[order.paymentProvider] }} · {{ order.paymentStatus }}</span>
+            <!-- The payment method is staff's call per order, so only the status shows. -->
+            <span class="text-xs text-brand-ink-muted">Payment {{ order.paymentStatus }}</span>
             <span class="text-sm font-bold text-brand-charcoal">₹{{ order.estimatedTotal }}</span>
           </div>
         </div>

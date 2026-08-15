@@ -14,7 +14,8 @@ interface ConfirmationState {
  * Post-checkout screen. Orders are enquiries rather than paid transactions —
  * online payment was withdrawn following the 2018 Supreme Court restrictions on
  * firecracker sales — so this confirms receipt and tells the customer staff will
- * be in touch, with payment collected in cash at pickup.
+ * be in touch. Staff settle the payment method (cash at the counter or online)
+ * order by order, so no method is promised here.
  */
 @Component({
   selector: 'app-order-confirmation',

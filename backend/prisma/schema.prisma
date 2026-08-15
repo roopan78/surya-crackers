@@ -176,9 +176,12 @@ model OrderLedger {
   estimatedTotal   Decimal             @db.Decimal(10, 2)
   status           OrderStatus         @default(PENDING)
   paymentStatus    PaymentStatus       @default(PENDING)
-  paymentProvider  PaymentProviderType
+  // Null until staff decide it. Orders are placed on hold with no method chosen
+  // — the customer never picks one — and it is set when payment is recorded.
+  paymentProvider  PaymentProviderType?
   paymentReference String?
-  // 12-digit UPI transaction reference the customer submits after paying (UPI_DIRECT only)
+  // 12-digit UPI transaction reference from the withdrawn UPI_DIRECT flow. Kept
+  // for the historical orders that have one; nothing writes it anymore.
   utrNumber        String?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt

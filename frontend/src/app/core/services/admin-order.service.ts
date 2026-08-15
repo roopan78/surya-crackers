@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiListMeta, ApiSuccess, Order, OrderStatus } from '../models';
+import { ApiListMeta, ApiSuccess, Order, OrderStatus, RecordablePaymentProvider } from '../models';
 
 const ADMIN_ORDERS_BASE = `${environment.apiUrl}/admin/orders`;
 
@@ -47,7 +47,13 @@ export class AdminOrderService {
     return this.http.patch<ApiSuccess<Order>>(`${ADMIN_ORDERS_BASE}/${id}/status`, { status }).pipe(map((res) => res.data));
   }
 
-  confirmPaymentManually(id: string): Observable<Order> {
-    return this.http.patch<ApiSuccess<Order>>(`${ADMIN_ORDERS_BASE}/${id}/payment`, {}).pipe(map((res) => res.data));
+  /**
+   * Records a payment staff collected. The method travels with the request
+   * because the order has none until now — the customer never chose one.
+   */
+  recordPayment(id: string, paymentProvider: RecordablePaymentProvider): Observable<Order> {
+    return this.http
+      .patch<ApiSuccess<Order>>(`${ADMIN_ORDERS_BASE}/${id}/payment`, { paymentProvider })
+      .pipe(map((res) => res.data));
   }
 }

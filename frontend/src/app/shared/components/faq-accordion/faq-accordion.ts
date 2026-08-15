@@ -25,7 +25,7 @@ export class FaqAccordion implements OnDestroy {
     {
       question: 'How do I place an order?',
       answer:
-        'Browse the catalog, add items to your cart, and fill in your pickup details at checkout — no account required. Choose Cash on Pickup (or PhonePe, once available) and you\'re done.',
+        'Browse the catalog, add items to your cart, and fill in your pickup details at checkout — no account required. No payment is taken online: your order is placed on hold, and our team calls you to confirm the items, your pickup time and how you can pay.',
     },
     {
       question: 'Is there a minimum age to purchase?',

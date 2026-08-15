@@ -8,15 +8,13 @@ import { OrderService } from '../../core/services/order.service';
 import { CustomerAuthService } from '../../core/services/customer-auth.service';
 import { SeoService } from '../../core/services/seo.service';
 import { QuantityStepper } from '../../shared/components/quantity-stepper/quantity-stepper';
-import { OrderDetails, PaymentProviderType } from '../../core/models';
+import { OrderDetails } from '../../core/models';
 
 /**
  * The 2018 Supreme Court ruling bars selling firecrackers online, so checkout
- * takes no payment at all: the order is recorded on hold, staff confirm it over
- * the phone, and the customer settles in cash at the counter on pickup.
+ * takes no payment and offers no method: the order is recorded on hold, and
+ * staff decide how it is paid when they call the customer to confirm it.
  */
-const PICKUP_PAYMENT_PROVIDER: PaymentProviderType = 'CASH_ON_PICKUP';
-
 @Component({
   selector: 'app-checkout',
   standalone: true,
@@ -92,23 +90,21 @@ export class Checkout implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.orderService.createOrder(details, items, PICKUP_PAYMENT_PROVIDER, isRegistered).subscribe({
+    this.orderService.createOrder(details, items, isRegistered).subscribe({
       next: (result) => {
         this.cartService.clearCart();
         this.submitting.set(false);
         this.router.navigate(['/order-confirmation', result.orderNumber], {
           state: {
             estimatedTotal: result.estimatedTotal,
-            paymentStatus: result.paymentStatus,
-            paymentProvider: PICKUP_PAYMENT_PROVIDER,
             pickupDate: details.pickupDate,
             pickupTime: details.pickupTime,
           },
         });
       },
       error: (err: unknown) => {
-        // Surface the server's own reason (e.g. an unavailable payment method).
-        // Blaming the connection for every failure sent us hunting the wrong bug.
+        // Surface the server's own reason when it sends one. Blaming the
+        // connection for every failure sent us hunting the wrong bug.
         const message =
           err instanceof HttpErrorResponse && typeof err.error?.message === 'string'
             ? err.error.message
