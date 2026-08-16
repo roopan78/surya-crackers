@@ -4,9 +4,9 @@ import { prisma } from '../config/prisma';
 import { ApiError } from '../utils/ApiError';
 
 /**
- * Bulk product import from Excel (.xlsx/.xls), SKU as the business identifier:
- * existing SKUs update, new SKUs create, missing categories are created
- * automatically. Preview never writes; import runs in one transaction.
+ * Bulk product import from a spreadsheet (.xlsx/.xls/.csv), SKU as the business
+ * identifier: existing SKUs update, new SKUs create, missing categories are
+ * created automatically. Preview never writes; import runs in one transaction.
  *
  * The template/export column set deliberately mirrors the real Product model
  * (not a generic storefront schema) so a future "Export Products" feature can
@@ -149,7 +149,7 @@ function parseWorkbook(buffer: Buffer): ParsedSheet {
   try {
     workbook = XLSX.read(buffer, { type: 'buffer' });
   } catch {
-    throw ApiError.badRequest('Could not read this file — it does not look like a valid Excel workbook.');
+    throw ApiError.badRequest('Could not read this file — it does not look like a valid spreadsheet.');
   }
 
   const firstSheetName = workbook.SheetNames[0];

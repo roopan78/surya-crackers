@@ -4,9 +4,9 @@ import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
 import { buildImportPreview, buildTemplateWorkbook, runImport } from '../services/productImport.service';
 
-function requireExcelBuffer(req: Request): Buffer {
+function requireSpreadsheetBuffer(req: Request): Buffer {
   if (!req.file || req.file.size === 0) {
-    throw ApiError.badRequest('Please attach a non-empty Excel file under the "file" field.');
+    throw ApiError.badRequest('Please attach a non-empty spreadsheet under the "file" field.');
   }
   return req.file.buffer;
 }
@@ -22,12 +22,12 @@ export const downloadImportTemplate = asyncHandler(async (_req: Request, res: Re
 
 // POST /api/admin/products/import/preview — parse + validate + summarize, zero writes
 export const previewProductImport = asyncHandler(async (req: Request, res: Response) => {
-  const summary = await buildImportPreview(requireExcelBuffer(req));
+  const summary = await buildImportPreview(requireSpreadsheetBuffer(req));
   return sendSuccess(res, summary);
 });
 
 // POST /api/admin/products/import — the actual transactional write
 export const importProducts = asyncHandler(async (req: Request, res: Response) => {
-  const result = await runImport(requireExcelBuffer(req));
+  const result = await runImport(requireSpreadsheetBuffer(req));
   return sendSuccess(res, result);
 });

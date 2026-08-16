@@ -13,8 +13,19 @@ import {
   listAllCategories,
   updateCategory,
 } from '../../controllers/category.controller';
+import {
+  downloadCategoryImportTemplate,
+  importCategories,
+  previewCategoryImport,
+} from '../../controllers/categoryImport.controller';
+import { uploadSpreadsheetFile } from '../../middleware/upload.middleware';
 
 const router = Router();
+
+// Bulk spreadsheet import — registered before '/:id' so 'import' is never read as an id.
+router.get('/import/template', downloadCategoryImportTemplate);
+router.post('/import/preview', uploadSpreadsheetFile, previewCategoryImport);
+router.post('/import', uploadSpreadsheetFile, importCategories);
 
 router.get('/', validate(listCategoriesQuerySchema, 'query'), listAllCategories);
 router.get('/:id', validate(categoryIdParamsSchema, 'params'), getCategoryById);

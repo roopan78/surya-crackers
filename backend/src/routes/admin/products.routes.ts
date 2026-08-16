@@ -18,14 +18,14 @@ import {
   importProducts,
   previewProductImport,
 } from '../../controllers/productImport.controller';
-import { uploadExcelFile } from '../../middleware/upload.middleware';
+import { uploadSpreadsheetFile } from '../../middleware/upload.middleware';
 
 const router = Router();
 
-// Bulk Excel import — registered before '/:id' so 'import' is never read as an id.
+// Bulk spreadsheet import — registered before '/:id' so 'import' is never read as an id.
 router.get('/import/template', downloadImportTemplate);
-router.post('/import/preview', uploadExcelFile, previewProductImport);
-router.post('/import', uploadExcelFile, importProducts);
+router.post('/import/preview', uploadSpreadsheetFile, previewProductImport);
+router.post('/import', uploadSpreadsheetFile, importProducts);
 
 router.get('/', validate(listProductsQuerySchema, 'query'), listAllProducts);
 router.get('/:id', validate(productIdParamsSchema, 'params'), getProductById);
