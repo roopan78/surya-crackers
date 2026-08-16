@@ -27,11 +27,36 @@ const spreadsheetUpload = multer({
  * multer's own errors onto the ApiError shape the error middleware expects.
  */
 export function uploadSpreadsheetFile(req: Request, res: Response, next: NextFunction): void {
-  spreadsheetUpload.single('file')(req, res, (error: unknown) => {
+  spreadsheetUpload.single('file')(req, res, wrapMulterError(next));
+}
+
+// The staff Android build is ~37 MB, so it needs its own ceiling — the
+// spreadsheet limit exists to stop someone pasting a database into the importer
+// and has no bearing on a release binary.
+const MAX_APK_BYTES = 150 * 1024 * 1024;
+
+const apkUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_APK_BYTES },
+  fileFilter: (_req, file, callback) => {
+    if (!/\.apk$/i.test(file.originalname)) {
+      return callback(ApiError.badRequest('Only an .apk file can be published as the Android build.'));
+    }
+    callback(null, true);
+  },
+});
+
+/** Accepts the release APK under the `file` field. */
+export function uploadApkFile(req: Request, res: Response, next: NextFunction): void {
+  apkUpload.single('file')(req, res, wrapMulterError(next, 'The APK exceeds the 150 MB upload limit.'));
+}
+
+function wrapMulterError(next: NextFunction, sizeMessage = 'The file exceeds the 5 MB upload limit.') {
+  return (error: unknown) => {
     if (error instanceof multer.MulterError) {
       return next(
         error.code === 'LIMIT_FILE_SIZE'
-          ? ApiError.badRequest('The file exceeds the 5 MB upload limit.')
+          ? ApiError.badRequest(sizeMessage)
           : ApiError.badRequest(`Upload failed: ${error.message}`),
       );
     }
@@ -39,5 +64,5 @@ export function uploadSpreadsheetFile(req: Request, res: Response, next: NextFun
       return next(error);
     }
     next();
-  });
+  };
 }

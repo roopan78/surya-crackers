@@ -8,6 +8,7 @@ import footerRoutes from './footer.routes';
 import ordersRoutes from './orders.routes';
 import usersRoutes from './users.routes';
 import uploadsRoutes from './uploads.routes';
+import appReleaseRoutes from './appRelease.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/footer-config', footerRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/users', usersRoutes);
 router.use('/uploads', uploadsRoutes);
+router.use('/app-release', appReleaseRoutes);
 
 export default router;

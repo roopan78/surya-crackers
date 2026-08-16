@@ -13,6 +13,7 @@ import {
   CircleCheck,
   CircleX,
 } from 'lucide-angular';
+import { AppDownload } from '../app-download/app-download';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
 import { OrderStatus } from '../../../core/models';
@@ -36,7 +37,7 @@ const STATUS_META: Record<OrderStatus, { label: string; color: string; icon: typ
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule, TitleCasePipe],
+  imports: [RouterLink, LucideAngularModule, TitleCasePipe, AppDownload],
   templateUrl: './dashboard-home.html',
 })
 export class DashboardHome implements OnInit {

@@ -47,6 +47,12 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().default(''),
   CLOUDINARY_UPLOAD_FOLDER: z.string().default('surya-crackers'),
 
+  // Where the staff Android APK is kept. Points at a Railway volume in
+  // production — the container filesystem is wiped on every deploy, so a plain
+  // directory inside the image would lose the build the first time the API
+  // restarted. Locally it falls back to a gitignored folder in the repo.
+  APP_RELEASE_DIR: z.string().default(''),
+
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z
     .enum(['true', 'false'])

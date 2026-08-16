@@ -6,6 +6,7 @@ import ordersRoutes from './public/orders.routes';
 import authRoutes from './public/auth.routes';
 import searchRoutes from './public/search.routes';
 import webhooksRoutes from './public/webhooks.routes';
+import appReleaseRoutes from './public/appRelease.routes';
 import adminRoutes from './admin';
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use('/orders', ordersRoutes);
 router.use('/auth', authRoutes);
 router.use('/search', searchRoutes);
 router.use('/webhooks', webhooksRoutes);
+router.use('/app-release', appReleaseRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;
