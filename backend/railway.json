@@ -2,8 +2,8 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "//buildCommand": "Nixpacks builds with NODE_ENV=production, and npm now honours that on `npm ci` by omitting devDependencies. TypeScript is a devDependency, so the default build died with `tsc: not found`. Installing dev deps explicitly here keeps the compiler available at build time without shipping it in `dependencies`.",
-    "buildCommand": "npm ci --include=dev && npm run build"
+    "//buildCommand": "Nixpacks builds with NODE_ENV=production, and npm now honours that on install by omitting devDependencies. TypeScript is a devDependency, so the default build died with `tsc: not found`. `npm install` rather than `npm ci`: nixpacks mounts a build cache at node_modules/.cache, and `ci` wipes node_modules first, which fails with EBUSY on the mount.",
+    "buildCommand": "npm install --include=dev --no-audit --no-fund && npm run build"
   },
   "deploy": {
     "startCommand": "npm run start",
