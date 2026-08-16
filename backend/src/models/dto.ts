@@ -57,6 +57,11 @@ export function toBannerDTO(banner: CarouselBanner) {
   };
 }
 
+/**
+ * The public footer shape. Also served unauthenticated by /content/homepage,
+ * so nothing may be added here that the storefront should not publish — see
+ * [toAdminFooterDTO] for fields that stay behind auth.
+ */
 export function toFooterDTO(footer: FooterConfig, addresses: ShopAddress[] = []) {
   return {
     shopName: footer.shopName,
@@ -67,6 +72,15 @@ export function toFooterDTO(footer: FooterConfig, addresses: ShopAddress[] = [])
     instagramUrl: footer.instagramUrl,
     facebookUrl: footer.facebookUrl,
     safetyDisclaimer: footer.safetyDisclaimer,
+  };
+}
+
+/** The footer as staff see it: everything public, plus the UPI collection details. */
+export function toAdminFooterDTO(footer: FooterConfig, addresses: ShopAddress[] = []) {
+  return {
+    ...toFooterDTO(footer, addresses),
+    upiId: footer.upiId,
+    upiPayeeName: footer.upiPayeeName,
   };
 }
 

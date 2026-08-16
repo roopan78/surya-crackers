@@ -143,6 +143,13 @@ model FooterConfig {
   instagramUrl     String   @default("")
   facebookUrl      String   @default("")
   safetyDisclaimer String
+  // UPI collection details the staff app builds its payment QR from. Empty
+  // means "not configured yet" and the app asks for it before showing a QR.
+  // Deliberately kept out of toFooterDTO: that shape is also served by the
+  // public /content/homepage route, and the shop's VPA has no business being
+  // published there. Only the authenticated admin footer route returns it.
+  upiId            String   @default("")
+  upiPayeeName     String   @default("")
   updatedAt        DateTime @updatedAt
 
   @@map("footer_config")

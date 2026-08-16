@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import { toFooterDTO } from '../models/dto';
+import { toAdminFooterDTO } from '../models/dto';
 import { UpdateFooterInput } from '../validators/footer.validator';
 
 const SINGLETON_ID = 1;
@@ -13,7 +13,7 @@ export const getFooterConfig = asyncHandler(async (_req: Request, res: Response)
     prisma.footerConfig.findUnique({ where: { id: SINGLETON_ID } }),
     prisma.shopAddress.findMany({ orderBy: { sortOrder: 'asc' } }),
   ]);
-  return sendSuccess(res, footer ? toFooterDTO(footer, addresses) : null);
+  return sendSuccess(res, footer ? toAdminFooterDTO(footer, addresses) : null);
 });
 
 // PUT /api/admin/footer-config — upserts the single row
@@ -38,7 +38,7 @@ export const updateFooterConfig = asyncHandler(async (req: Request, res: Respons
     return [saved, await tx.shopAddress.findMany({ orderBy: { sortOrder: 'asc' } })] as const;
   });
 
-  return sendSuccess(res, toFooterDTO(footer, savedAddresses));
+  return sendSuccess(res, toAdminFooterDTO(footer, savedAddresses));
 });
 
 /**
