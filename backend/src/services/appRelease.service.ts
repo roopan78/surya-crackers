@@ -28,13 +28,33 @@ export interface AppReleaseMetadata {
   uploadedAt: string;
 }
 
+/**
+ * What the APK is called *on the volume*. An implementation detail, and
+ * deliberately constant: `saveAppRelease` renames onto this path atomically, so
+ * it cannot vary with the build being published. What a staff member downloads
+ * is [downloadFileName], which is a different thing entirely.
+ */
 const APK_FILE = 'app-release.apk';
 const MANIFEST_FILE = 'release.json';
 
-/** The name the browser saves it as; also what the Content-Disposition promises. */
-export const DOWNLOAD_FILE_NAME = APK_FILE;
-
 export const APK_CONTENT_TYPE = 'application/vnd.android.package-archive';
+
+/**
+ * The name the browser saves the download as.
+ *
+ * Derived from the version rather than stored, so a build published before this
+ * existed still comes down with a useful name — and so a phone's Downloads
+ * folder holding three of these can be told apart. `app-release.apk`, which is
+ * what it used to be, says nothing about which app or which version it is.
+ *
+ * The version is scrubbed because it ends up in a `Content-Disposition` header
+ * and then in a filename on someone's phone: a quote would end the header value
+ * early, and a slash would be a path.
+ */
+export function downloadFileName(metadata: Pick<AppReleaseMetadata, 'versionName'> | null): string {
+  const version = (metadata?.versionName ?? '').trim().replace(/[^A-Za-z0-9._-]/g, '-');
+  return version ? `SuryaCrackers-${version}.apk` : 'SuryaCrackers.apk';
+}
 
 /**
  * Resolves to the Railway volume in production and a gitignored folder locally,

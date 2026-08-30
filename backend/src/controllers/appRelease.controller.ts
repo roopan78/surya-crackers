@@ -5,7 +5,8 @@ import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
 import {
   APK_CONTENT_TYPE,
-  DOWNLOAD_FILE_NAME,
+  AppReleaseMetadata,
+  downloadFileName,
   readAppReleaseMetadata,
   resolveApkPath,
   saveAppRelease,
@@ -13,6 +14,21 @@ import {
 
 /** Where the portal points the download button. Public, so a browser can follow it. */
 const DOWNLOAD_PATH = '/api/app-release/download';
+
+/**
+ * The manifest as clients see it.
+ *
+ * `fileName` is deliberately the *download* name rather than the name on the
+ * volume: nothing outside this server has any business knowing the storage
+ * layout, and this is the name the portal shows and the browser saves.
+ */
+function toResponse(metadata: AppReleaseMetadata) {
+  return {
+    ...metadata,
+    fileName: downloadFileName(metadata),
+    downloadUrl: DOWNLOAD_PATH,
+  };
+}
 
 const uploadSchema = z.object({
   versionName: z.string().trim().min(1, 'versionName is required').max(32),
@@ -38,7 +54,7 @@ export const uploadAppRelease = asyncHandler(async (req: Request, res: Response)
   }
 
   const metadata = await saveAppRelease(req.file.buffer, parsed.data);
-  return sendSuccess(res, { ...metadata, downloadUrl: DOWNLOAD_PATH }, 201);
+  return sendSuccess(res, toResponse(metadata), 201);
 });
 
 // GET /api/admin/app-release — what the admin portal renders next to the icon
@@ -47,7 +63,7 @@ export const getAppRelease = asyncHandler(async (_req: Request, res: Response) =
 
   // Deliberately a 200 with null rather than a 404: "no build published yet" is
   // an ordinary state for the portal to render, not an error worth a red toast.
-  return sendSuccess(res, metadata ? { ...metadata, downloadUrl: DOWNLOAD_PATH } : null);
+  return sendSuccess(res, metadata ? toResponse(metadata) : null);
 });
 
 /**
@@ -63,7 +79,10 @@ export const downloadAppRelease = asyncHandler(async (_req: Request, res: Respon
   const [file, metadata] = await Promise.all([resolveApkPath(), readAppReleaseMetadata()]);
 
   res.setHeader('Content-Type', APK_CONTENT_TYPE);
-  res.setHeader('Content-Disposition', `attachment; filename="${DOWNLOAD_FILE_NAME}"`);
+  // Named from the version, so a phone's Downloads folder holding three of
+  // these can tell them apart — "app-release.apk" said nothing about either
+  // which app it was or which build.
+  res.setHeader('Content-Disposition', `attachment; filename="${downloadFileName(metadata)}"`);
   if (metadata) {
     // Not standard headers, but they let a client verify the download without a
     // second round trip to the metadata route.
