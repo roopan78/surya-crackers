@@ -1,9 +1,10 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package } from 'lucide-angular';
+import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package, Pencil, Plus, Trash2 } from 'lucide-angular';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
-import { Order, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
+import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
+import { Order, OrderItem, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
 
 const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
@@ -22,6 +23,13 @@ const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
 
 const PAGE_SIZE = 10;
 
+/**
+ * Statuses whose contents staff may still rewrite. Matches what the API will
+ * accept — a COMPLETED order has left the shop and a CANCELLED one is a record
+ * of what was not sold.
+ */
+const RESTRUCTURABLE_STATUSES: OrderStatus[] = ['PENDING', 'READY_FOR_PICKUP'];
+
 @Component({
   selector: 'app-order-management',
   standalone: true,
@@ -30,18 +38,37 @@ const PAGE_SIZE = 10;
 })
 export class OrderManagement implements OnInit {
   readonly orderService = inject(AdminOrderService);
+  readonly catalogService = inject(AdminCatalogService);
   private readonly toastService = inject(ToastService);
 
   readonly ChevronDownIcon = ChevronDown;
   readonly ChevronLeftIcon = ChevronLeft;
   readonly ChevronRightIcon = ChevronRight;
   readonly PackageIcon = Package;
+  readonly PencilIcon = Pencil;
+  readonly PlusIcon = Plus;
+  readonly TrashIcon = Trash2;
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly statusFilter = signal<OrderStatus | ''>('');
   readonly searchTerm = signal('');
   readonly page = signal(1);
   readonly expandedId = signal<string | null>(null);
+
+  /** The order whose items are open for editing, and the lines as edited. */
+  readonly editingId = signal<string | null>(null);
+  readonly draft = signal<OrderItem[]>([]);
+  readonly savingDraft = signal(false);
+
+  readonly draftTotal = computed(() =>
+    this.draft().reduce((sum, line) => sum + line.price * line.boxes, 0),
+  );
+
+  /** What is left in the catalog to add — an order carries one line per product. */
+  readonly addableProducts = computed(() => {
+    const taken = new Set(this.draft().map((line) => line.productId));
+    return this.catalogService.products().filter((product) => !taken.has(product.id));
+  });
 
   readonly filteredOrders = computed(() => {
     const query = this.searchTerm().trim().toLowerCase();
@@ -94,6 +121,82 @@ export class OrderManagement implements OnInit {
   /** Blank until staff record one — an order arrives with no method chosen. */
   providerLabel(order: Order): string {
     return order.paymentProvider ? PROVIDER_LABELS[order.paymentProvider] : 'Method not decided';
+  }
+
+  // --- Restructuring an order staff cannot fill ------------------------------
+
+  /**
+   * Stock in Sivakasi moves faster than the catalog does, so an order regularly
+   * has to be rebuilt at the counter. Anything already paid is off limits:
+   * money changed hands against the old total.
+   */
+  canRestructure(order: Order): boolean {
+    return order.paymentStatus !== 'PAID' && RESTRUCTURABLE_STATUSES.includes(order.status);
+  }
+
+  startEdit(order: Order): void {
+    this.expandedId.set(order.id);
+    this.editingId.set(order.id);
+    // Copied, not referenced: abandoning the edit has to leave the row as it was.
+    this.draft.set(order.items.map((item) => ({ ...item })));
+    if (this.catalogService.products().length === 0) {
+      this.catalogService.loadProducts();
+    }
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+    this.draft.set([]);
+  }
+
+  setBoxes(productId: string, raw: string | number): void {
+    const boxes = Math.max(1, Math.floor(Number(raw) || 1));
+    this.draft.update((lines) => lines.map((line) => (line.productId === productId ? { ...line, boxes } : line)));
+  }
+
+  removeLine(productId: string): void {
+    this.draft.update((lines) => lines.filter((line) => line.productId !== productId));
+  }
+
+  addLine(productId: string): void {
+    const product = this.catalogService.products().find((candidate) => candidate.id === productId);
+    if (!product) return;
+
+    this.draft.update((lines) => [
+      ...lines,
+      {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        boxQuantity: product.boxQuantity,
+        boxes: 1,
+      },
+    ]);
+  }
+
+  saveDraft(order: Order): void {
+    const lines = this.draft();
+    if (lines.length === 0) {
+      // Emptying an order is a cancellation, and that is the status dropdown's
+      // job — it tells the customer something this route does not.
+      this.toastService.error('An order must keep at least one item. Cancel it instead.');
+      return;
+    }
+
+    this.savingDraft.set(true);
+    const items = lines.map((line) => ({ productId: line.productId, boxes: line.boxes }));
+    this.orderService.restructure(order.id, items).subscribe({
+      next: () => {
+        this.savingDraft.set(false);
+        this.cancelEdit();
+        this.toastService.success('Order updated.');
+        this.loadOrders();
+      },
+      error: () => {
+        this.savingDraft.set(false);
+        this.toastService.error('Could not update the order — please try again.');
+      },
+    });
   }
 
   recordPayment(id: string, paymentProvider: RecordablePaymentProvider): void {

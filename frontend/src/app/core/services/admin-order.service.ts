@@ -48,6 +48,20 @@ export class AdminOrderService {
   }
 
   /**
+   * Rebuilds an order staff cannot fill as it was placed — a line dropped
+   * because the godown is empty, a count cut, a substitute added.
+   *
+   * Only the product and the box count are sent. Names and prices are read back
+   * out of the catalog server-side, so this cannot reprice an order however the
+   * client asks it to.
+   */
+  restructure(id: string, items: { productId: string; boxes: number }[]): Observable<Order> {
+    return this.http
+      .patch<ApiSuccess<Order>>(`${ADMIN_ORDERS_BASE}/${id}/items`, { items })
+      .pipe(map((res) => res.data));
+  }
+
+  /**
    * Records a payment staff collected. The method travels with the request
    * because the order has none until now — the customer never chose one.
    */

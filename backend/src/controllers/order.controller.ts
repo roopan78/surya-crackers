@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Prisma, PaymentStatus } from '@prisma/client';
+import { Prisma, OrderStatus, PaymentStatus } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
@@ -8,10 +8,23 @@ import { toOrderDTO } from '../models/dto';
 import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { queueOrderNotification } from '../services/notification.service';
-import { ConfirmPaymentInput, CreateOrderInput, ListOrdersQuery, UpdateOrderStatusInput } from '../validators/order.validator';
+import {
+  ConfirmPaymentInput,
+  CreateOrderInput,
+  ListOrdersQuery,
+  UpdateOrderItemsInput,
+  UpdateOrderStatusInput,
+} from '../validators/order.validator';
 
 const MAX_ORDER_NUMBER_ATTEMPTS = 5;
 const includeCustomer = { customer: true } satisfies Prisma.OrderLedgerInclude;
+
+/**
+ * Orders whose contents staff may still change: nothing handed over, nothing
+ * cancelled. A COMPLETED order has left the shop and a CANCELLED one is a
+ * record of what was *not* sold; rewriting either would falsify history.
+ */
+const RESTRUCTURABLE_STATUSES: OrderStatus[] = [OrderStatus.PENDING, OrderStatus.READY_FOR_PICKUP];
 
 /**
  * POST /api/orders — public (guest) or authenticated (registered customer).
@@ -152,6 +165,81 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
   const order = await prisma.orderLedger.update({
     where: { id: req.params.id },
     data: { status },
+    include: includeCustomer,
+  });
+  return sendSuccess(res, toOrderDTO(order));
+});
+
+/**
+ * PATCH /api/admin/orders/:id/items — staff restructure an order they cannot fill.
+ *
+ * Sivakasi stock moves faster than the catalog does, so an order regularly has
+ * to be rebuilt at the counter: a line dropped because the godown is empty, a
+ * count cut, a substitute added, and the total moving in either direction as a
+ * result. Until now that could only be done by cancelling and re-placing, which
+ * loses the order number the customer was quoted.
+ *
+ * The request says *what to pack*, never what it costs. Names, packing and
+ * prices are all read back out of the catalog, so this route cannot be used —
+ * by a stale admin client, or by anyone who gets hold of a staff token — to
+ * quietly reprice an order.
+ */
+export const updateOrderItems = asyncHandler(async (req: Request, res: Response) => {
+  const input = req.body as UpdateOrderItemsInput;
+
+  const existing = await prisma.orderLedger.findUnique({ where: { id: req.params.id } });
+  if (!existing) {
+    throw ApiError.notFound('Order not found');
+  }
+  // Money has already changed hands for the old total. Editing the contents now
+  // would leave the ledger claiming a sum nobody ever collected.
+  if (existing.paymentStatus === PaymentStatus.PAID) {
+    throw ApiError.conflict('This order is already paid, so its contents can no longer be changed');
+  }
+  if (!RESTRUCTURABLE_STATUSES.includes(existing.status)) {
+    throw ApiError.conflict(`A ${existing.status} order cannot be restructured`);
+  }
+
+  // One line per product, in the order staff sent them: two lines for the same
+  // product would total correctly and then read as a duplicate on the bill.
+  const boxesByProduct = new Map<string, number>();
+  for (const item of input.items) {
+    boxesByProduct.set(item.productId, (boxesByProduct.get(item.productId) ?? 0) + item.boxes);
+  }
+  const productIds = [...boxesByProduct.keys()];
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true, price: true, boxQuantity: true },
+  });
+  const byId = new Map(products.map((product) => [product.id, product]));
+
+  const missing = productIds.filter((id) => !byId.has(id));
+  if (missing.length > 0) {
+    throw ApiError.badRequest(`No such product: ${missing.join(', ')}`);
+  }
+
+  const items = productIds.map((id) => {
+    const product = byId.get(id)!;
+    return {
+      productId: product.id,
+      name: product.name,
+      price: Number(product.price),
+      boxQuantity: product.boxQuantity,
+      boxes: boxesByProduct.get(id)!,
+    };
+  });
+  const estimatedTotal = items.reduce((sum, item) => sum + item.price * item.boxes, 0);
+
+  const order = await prisma.orderLedger.update({
+    where: { id: req.params.id },
+    data: {
+      items: items as unknown as Prisma.InputJsonValue,
+      estimatedTotal,
+      // Absent means "leave the customer's own note alone"; an empty string is
+      // staff deliberately clearing it.
+      ...(input.notes === undefined ? {} : { notes: input.notes }),
+    },
     include: includeCustomer,
   });
   return sendSuccess(res, toOrderDTO(order));

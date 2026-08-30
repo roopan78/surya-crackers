@@ -52,7 +52,24 @@ export const updateOrderStatusSchema = z.object({
   status: z.enum(['PENDING', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED']),
 });
 
+// What staff may change on an order that has already been placed: which
+// products, and how many boxes of each. Deliberately not the name, the packing
+// or above all the price — the controller reads all three out of the catalog,
+// so an order cannot be repriced by whatever happens to be calling this.
+export const restructureOrderItemSchema = z.object({
+  productId: z.string().min(1, 'productId is required'),
+  boxes: z.coerce.number().int().positive('boxes must be at least 1'),
+});
+
+export const updateOrderItemsSchema = z.object({
+  // An order with nothing left in it is a cancellation, and that is a different
+  // route with different consequences for the customer.
+  items: z.array(restructureOrderItemSchema).min(1, 'An order must keep at least one item'),
+  notes: z.string().max(500).optional(),
+});
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type ListOrdersQuery = z.infer<typeof listOrdersQuerySchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;
+export type UpdateOrderItemsInput = z.infer<typeof updateOrderItemsSchema>;
