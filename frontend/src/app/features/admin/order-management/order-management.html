@@ -172,23 +172,55 @@
                       }
                     </div>
 
-                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3">
-                      <lucide-icon [img]="PlusIcon" class="h-4 w-4 text-brand-ink-muted" />
-                      <select
-                        #addPicker
-                        class="input-field !py-1.5 sm:max-w-xs"
-                        (change)="addLine(addPicker.value); addPicker.value = ''"
-                      >
-                        <option value="">Add an item…</option>
-                        @for (product of addableProducts(); track product.id) {
-                          <option [value]="product.id">
-                            {{ product.name }} — ₹{{ product.price }}
-                            @if (!product.stockCount) { (out of stock) }
-                          </option>
-                        }
-                      </select>
+                    <!--
+                      A search box rather than a dropdown: the catalog runs to a
+                      hundred-odd products, and a staff member reaching for a
+                      substitute knows either its name or the SKU on the carton.
+                    -->
+                    <div class="mt-3 border-t border-black/5 pt-3">
+                      <div class="flex items-center gap-2">
+                        <lucide-icon [img]="PlusIcon" class="h-4 w-4 shrink-0 text-brand-ink-muted" />
+                        <input
+                          type="text"
+                          [ngModel]="productSearch()"
+                          (ngModelChange)="productSearch.set($event)"
+                          placeholder="Add an item — search by name or SKU…"
+                          class="input-field !py-1.5 sm:max-w-sm"
+                        />
+                      </div>
 
-                      <span class="ml-auto text-sm font-semibold text-brand-charcoal">
+                      @if (productSearch().trim()) {
+                        <div class="mt-2 flex flex-col gap-1">
+                          @for (product of addableProducts(); track product.id) {
+                            <button
+                              type="button"
+                              class="flex items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-black/[0.04]"
+                              (click)="addLine(product.id)"
+                            >
+                              <span class="text-brand-ink-secondary">
+                                {{ product.name }}
+                                <span class="text-brand-ink-muted">· {{ product.sku }}</span>
+                              </span>
+                              <span
+                                class="ml-3 shrink-0 text-xs"
+                                [class.text-brand-ink-muted]="product.stockCount > 0"
+                                [class.text-brand-red]="!product.stockCount"
+                              >
+                                ₹{{ product.price }} ·
+                                {{ product.stockCount > 0 ? product.stockCount + ' in stock' : 'out of stock' }}
+                              </span>
+                            </button>
+                          } @empty {
+                            <p class="px-2 py-1.5 text-sm text-brand-ink-muted">
+                              Nothing in the catalog matches “{{ productSearch() }}”.
+                            </p>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3">
+                      <span class="text-sm font-semibold text-brand-charcoal">
                         New total: ₹{{ draftTotal() }}
                         @if (draftTotal() !== order.estimatedTotal) {
                           <span class="ml-1 text-xs font-normal text-brand-ink-muted">
@@ -196,7 +228,7 @@
                           </span>
                         }
                       </span>
-                      <button type="button" class="btn-secondary !px-3 !py-1.5 text-xs" (click)="cancelEdit()">
+                      <button type="button" class="btn-secondary ml-auto !px-3 !py-1.5 text-xs" (click)="cancelEdit()">
                         Cancel
                       </button>
                       <button

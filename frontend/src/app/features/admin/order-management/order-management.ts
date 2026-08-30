@@ -30,6 +30,9 @@ const PAGE_SIZE = 10;
  */
 const RESTRUCTURABLE_STATUSES: OrderStatus[] = ['PENDING', 'READY_FOR_PICKUP'];
 
+/** How many catalog matches the add-an-item picker offers before asking for a narrower search. */
+const PICKER_RESULTS = 8;
+
 @Component({
   selector: 'app-order-management',
   standalone: true,
@@ -64,10 +67,32 @@ export class OrderManagement implements OnInit {
     this.draft().reduce((sum, line) => sum + line.price * line.boxes, 0),
   );
 
-  /** What is left in the catalog to add — an order carries one line per product. */
+  /** Free text for the add-an-item picker, matched against name and SKU. */
+  readonly productSearch = signal('');
+
+  /**
+   * Catalog matches for the picker: everything not already on the draft, then
+   * narrowed by the search, then capped.
+   *
+   * Matched against the SKU as well as the name because that is what is printed
+   * on the carton — a staff member reaching for a substitute at the counter is
+   * as likely to be reading a code as a name. Capped because a bare search term
+   * like "s" would otherwise render the whole catalog into the row.
+   */
   readonly addableProducts = computed(() => {
     const taken = new Set(this.draft().map((line) => line.productId));
-    return this.catalogService.products().filter((product) => !taken.has(product.id));
+    const query = this.productSearch().trim().toLowerCase();
+
+    return this.catalogService
+      .products()
+      .filter((product) => !taken.has(product.id))
+      .filter(
+        (product) =>
+          !query ||
+          product.name.toLowerCase().includes(query) ||
+          product.sku.toLowerCase().includes(query),
+      )
+      .slice(0, PICKER_RESULTS);
   });
 
   readonly filteredOrders = computed(() => {
@@ -139,6 +164,7 @@ export class OrderManagement implements OnInit {
     this.editingId.set(order.id);
     // Copied, not referenced: abandoning the edit has to leave the row as it was.
     this.draft.set(order.items.map((item) => ({ ...item })));
+    this.productSearch.set('');
     if (this.catalogService.products().length === 0) {
       this.catalogService.loadProducts();
     }
@@ -147,6 +173,7 @@ export class OrderManagement implements OnInit {
   cancelEdit(): void {
     this.editingId.set(null);
     this.draft.set([]);
+    this.productSearch.set('');
   }
 
   setBoxes(productId: string, raw: string | number): void {
@@ -172,6 +199,9 @@ export class OrderManagement implements OnInit {
         boxes: 1,
       },
     ]);
+    // Cleared so the next substitute can be typed straight away, rather than
+    // leaving a stale result list under a term that has already been used.
+    this.productSearch.set('');
   }
 
   saveDraft(order: Order): void {
