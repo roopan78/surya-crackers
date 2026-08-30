@@ -53,6 +53,12 @@ const envSchema = z.object({
   // restarted. Locally it falls back to a gitignored folder in the repo.
   APP_RELEASE_DIR: z.string().default(''),
 
+  // A long random secret that lets a build machine or a CI job publish an APK
+  // without a browser session. Optional — leave it unset and publishing stays
+  // session-only, exactly as it was. See middleware/releaseToken.middleware.ts
+  // for why it is accepted on one route and one method and nothing else.
+  APP_RELEASE_TOKEN: z.string().default(''),
+
   // PhonePe — merchant KYC pending, keep disabled in production until approved
   PHONEPE_ENABLED: z
     .enum(['true', 'false'])
