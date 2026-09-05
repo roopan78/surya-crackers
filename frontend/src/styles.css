@@ -173,6 +173,17 @@ body {
   }
 }
 
+@keyframes fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes skeleton-shimmer {
   100% {
     transform: translateX(100%);
@@ -211,6 +222,11 @@ body {
   animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Back to Top button popping in once the page has scrolled. */
+.animate-fab-in {
+  animation: fab-in 0.18s ease-out;
+}
+
 /* Accordion panels (Quick Order categories) — a short fade, nothing heavy. */
 .animate-accordion-in {
   animation: accordion-in 0.18s ease-out;
@@ -237,6 +253,7 @@ body {
   }
   .animate-float,
   .animate-accordion-in,
+  .animate-fab-in,
   .skeleton::after {
     animation: none;
   }

@@ -20,6 +20,11 @@ import { SearchComponent } from '../../search/search.component';
   standalone: true,
   imports: [RouterLink, LucideAngularModule, SearchComponent],
   templateUrl: './header.html',
+  // The sticky offset lives on the host, not on the inner <header>: a sticky
+  // element can only travel inside its parent's box, and <app-header> is
+  // exactly as tall as the bar itself, so sticking it there pins nothing.
+  // The host is a flex item of the full-height storefront column instead.
+  host: { class: 'sticky top-0 z-40' },
 })
 export class Header {
   readonly cartService = inject(CartService);
