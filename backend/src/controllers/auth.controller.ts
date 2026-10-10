@@ -5,8 +5,14 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
 import { toUserDTO } from '../models/dto';
-import { AuthResult, login, loginWithGoogle, register } from '../services/auth.service';
-import { GoogleLoginInput, LoginInput, RegisterInput, UpdateProfileInput } from '../validators/auth.validator';
+import { AuthResult, changePassword, login, loginWithGoogle, register } from '../services/auth.service';
+import {
+  ChangePasswordInput,
+  GoogleLoginInput,
+  LoginInput,
+  RegisterInput,
+  UpdateProfileInput,
+} from '../validators/auth.validator';
 
 function respondWithSession(res: Response, result: AuthResult) {
   res.cookie('token', result.token, {
@@ -41,6 +47,17 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
 
 export const me = asyncHandler(async (req: Request, res: Response) => {
   return sendSuccess(res, { user: req.user });
+});
+
+// POST /api/auth/change-password — a user replacing their own password, which
+// for a Google sign-up is the temporary one we emailed them.
+export const changeOwnPassword = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw ApiError.unauthorized('Authentication required');
+  }
+  const { currentPassword, newPassword } = req.body as ChangePasswordInput;
+  await changePassword(req.user.sub, currentPassword, newPassword);
+  return sendSuccess(res, { message: 'Password updated' });
 });
 
 // PATCH /api/auth/me — a user updating their own profile (email/role are not self-editable)

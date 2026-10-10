@@ -31,6 +31,93 @@
     </form>
   </div>
 
+  <div class="glass-card-solid mt-6 p-6">
+    <h2 class="flex items-center gap-2 font-display text-base font-extrabold tracking-tight text-brand-charcoal">
+      <lucide-icon [img]="KeyRoundIcon" class="h-4 w-4 text-brand-red" aria-hidden="true" />
+      Change Password
+    </h2>
+
+    @if (customerAuthService.currentUser()?.passwordIsTemporary) {
+      <p class="mt-3 flex items-start gap-2 rounded-xl bg-brand-gold-soft px-3 py-2.5 text-xs leading-relaxed text-brand-ink-secondary">
+        <lucide-icon [img]="TriangleAlertIcon" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-gold-hover" aria-hidden="true" />
+        <span>
+          You are using the temporary password we emailed you when you signed up with Google. Set one
+          of your own below — you can keep signing in with Google either way.
+        </span>
+      </p>
+    } @else {
+      <p class="mt-2 text-xs text-brand-ink-muted">
+        Use this to replace the password you sign in with. Signing in with Google is unaffected.
+      </p>
+    }
+
+    <form [formGroup]="passwordForm" class="mt-4 flex flex-col gap-4" (ngSubmit)="changePassword()">
+      <div>
+        <label class="field-label" for="currentPassword">Current Password</label>
+        <input
+          id="currentPassword"
+          type="password"
+          autocomplete="current-password"
+          formControlName="currentPassword"
+          class="input-field"
+          placeholder="The password you have now"
+        />
+        @if (passwordForm.controls.currentPassword.invalid && passwordForm.controls.currentPassword.touched) {
+          <p class="field-error">Enter your current password.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="newPassword">New Password</label>
+        <input
+          id="newPassword"
+          type="password"
+          autocomplete="new-password"
+          formControlName="newPassword"
+          class="input-field"
+          placeholder="At least 8 characters"
+        />
+        @if (passwordForm.controls.newPassword.invalid && passwordForm.controls.newPassword.touched) {
+          <p class="field-error">Your new password must be at least 8 characters.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="confirmPassword">Confirm New Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          formControlName="confirmPassword"
+          class="input-field"
+          placeholder="Type it again"
+        />
+        @if (passwordForm.hasError('passwordMismatch') && passwordForm.controls.confirmPassword.touched) {
+          <p class="field-error">Both passwords must match.</p>
+        }
+      </div>
+
+      @if (passwordError()) {
+        <p class="flex items-center gap-1.5 rounded-xl bg-brand-red-soft px-3 py-2 text-xs font-medium text-brand-red">
+          <lucide-icon [img]="TriangleAlertIcon" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {{ passwordError() }}
+        </p>
+      }
+
+      @if (passwordChanged()) {
+        <p class="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+          <lucide-icon [img]="CheckCircle2Icon" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Password updated. Use it the next time you sign in with your email.
+        </p>
+      }
+
+      <button type="submit" class="btn-primary mt-1 self-start" [disabled]="changingPassword()">
+        <lucide-icon [img]="KeyRoundIcon" class="h-4 w-4" aria-hidden="true" />
+        {{ changingPassword() ? 'Updating…' : 'Update Password' }}
+      </button>
+    </form>
+  </div>
+
   <button type="button" class="btn-secondary mt-4 !text-brand-red" (click)="logout()">
     <lucide-icon [img]="LogOutIcon" class="h-4 w-4" />
     Log Out

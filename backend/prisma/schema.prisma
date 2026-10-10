@@ -61,6 +61,10 @@ model User {
   passwordHash String?
   // Google's stable subject claim; null until/unless the account links Google.
   googleId String? @unique
+  // True while passwordHash holds a password we generated and emailed rather
+  // than one the customer chose (see auth.service.issueTemporaryPassword).
+  // Purely advisory — the profile page uses it to nudge them to replace it.
+  passwordIsTemporary Boolean @default(false)
 
   name      String?
   mobile    String?

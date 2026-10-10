@@ -39,6 +39,24 @@ const envSchema = z.object({
   WHATSAPP_TEMPLATE_ORDER_FAILED: z.string().default('order_failed'),
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().default('en'),
 
+  // Outbound email (SMTP). Used for transactional account mail — currently the
+  // temporary password handed to accounts created through Google Sign-In.
+  // Leaving HOST/USER/PASSWORD empty disables sending: the mail is logged as
+  // skipped and no temporary password is ever set, so we never lock a customer
+  // out with a credential nobody could have received.
+  SMTP_HOST: z.string().default(''),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  // true for implicit TLS on 465; false for STARTTLS on 587.
+  SMTP_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASSWORD: z.string().default(''),
+  // From header, e.g. 'Surya Crackers <orders@suryacrackers.shop>'. Falls back
+  // to SMTP_USER when unset.
+  MAIL_FROM: z.string().default(''),
+
   // Cloudinary — product image hosting. The browser uploads directly to
   // Cloudinary using a short-lived signature minted here, so image bytes never
   // pass through this API and are not limited by its request body size.

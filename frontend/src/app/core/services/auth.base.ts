@@ -21,6 +21,11 @@ export interface ProfileUpdate {
   mobile?: string;
 }
 
+export interface PasswordChange {
+  currentPassword: string;
+  newPassword: string;
+}
+
 /**
  * Shared session logic for the two auth surfaces (admin, customer). Both hit
  * the same backend endpoints (`/api/auth/*`) — what makes them "separate" is
@@ -67,6 +72,24 @@ export abstract class AuthServiceBase {
         }
       }),
       map((res) => res.data),
+    );
+  }
+
+  /**
+   * Replaces the account's password. The stored user is refreshed on success so
+   * the "temporary password" notice disappears without another round trip —
+   * the API clears that flag as part of the same change.
+   */
+  changePassword(change: PasswordChange): Observable<void> {
+    return this.http.post<ApiSuccess<{ message: string }>>(`${environment.apiUrl}/auth/change-password`, change).pipe(
+      tap(() => {
+        const token = this.getToken();
+        const user = this.currentUser();
+        if (token && user) {
+          this.setSession(token, { ...user, passwordIsTemporary: false });
+        }
+      }),
+      map(() => undefined),
     );
   }
 

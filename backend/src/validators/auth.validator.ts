@@ -19,6 +19,11 @@ export const googleLoginSchema = z.object({
   idToken: z.string().min(1, 'Google credential is required'),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Your current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+});
+
 export const updateProfileSchema = z.object({
   name: z.string().min(1).max(100),
   mobile: mobileSchema.optional(),
@@ -27,4 +32,5 @@ export const updateProfileSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

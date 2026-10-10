@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate.middleware';
 import { authenticateUser } from '../../middleware/auth.middleware';
-import { loginRateLimiter } from '../../middleware/rateLimit.middleware';
+import { loginRateLimiter, passwordChangeRateLimiter } from '../../middleware/rateLimit.middleware';
 import {
+  changePasswordSchema,
   googleLoginSchema,
   loginSchema,
   registerSchema,
@@ -15,6 +16,7 @@ import {
   logout,
   me,
   updateProfile,
+  changeOwnPassword,
 } from '../../controllers/auth.controller';
 
 const router = Router();
@@ -27,5 +29,13 @@ router.post('/google', loginRateLimiter, validate(googleLoginSchema), googleLogi
 router.post('/logout', authenticateUser, logout);
 router.get('/me', authenticateUser, me);
 router.patch('/me', authenticateUser, validate(updateProfileSchema), updateProfile);
+// Rate limiter sits after authenticateUser so it can key on the user, not the IP.
+router.post(
+  '/change-password',
+  authenticateUser,
+  passwordChangeRateLimiter,
+  validate(changePasswordSchema),
+  changeOwnPassword,
+);
 
 export default router;

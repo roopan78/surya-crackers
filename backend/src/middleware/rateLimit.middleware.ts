@@ -13,3 +13,18 @@ export const loginRateLimiter = rateLimit({
   },
   message: { success: false, message: 'Too many attempts. Please try again later.' },
 });
+
+/**
+ * Password changes. Keyed by the authenticated user (mount it after
+ * `authenticateUser`) so one account's retries never throttle anyone sharing
+ * its IP — while still capping how fast a borrowed session can guess the
+ * current password.
+ */
+export const passwordChangeRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.sub || req.ip || 'unknown',
+  message: { success: false, message: 'Too many attempts. Please try again later.' },
+});
