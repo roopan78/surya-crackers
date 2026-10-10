@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { adminAuthGuard } from './core/guards/admin-auth.guard';
 import { customerAuthGuard } from './core/guards/customer-auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -14,7 +15,19 @@ export const routes: Routes = [
     component: StorefrontLayout,
     children: [
       {
+        // Visitors landing on the site go straight to Quick Order. The storefront
+        // homepage keeps its own route at /home — every "Home" link points there.
+        // Exception: Home renders the search-results page off ?q=, so an older
+        // bookmarked /?q=term link has to reach /home or the results silently vanish.
         path: '',
+        redirectTo: ({ queryParams }) =>
+          queryParams['q']
+            ? inject(Router).createUrlTree(['/home'], { queryParams })
+            : '/quick-order',
+        pathMatch: 'full',
+      },
+      {
+        path: 'home',
         loadComponent: () => import('./features/home/home').then((m) => m.Home),
       },
       {

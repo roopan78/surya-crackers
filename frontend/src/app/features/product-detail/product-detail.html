@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
     <nav aria-label="Breadcrumb" class="text-sm text-brand-ink-secondary">
       <ol class="flex flex-wrap items-center gap-1.5">
-        <li><a routerLink="/" class="font-medium transition hover:text-brand-red">Home</a></li>
+        <li><a routerLink="/home" class="font-medium transition hover:text-brand-red">Home</a></li>
         @if (category(); as c) {
           <li aria-hidden="true">›</li>
           <li><a [routerLink]="['/category', c.slug]" class="font-medium transition hover:text-brand-red">{{ c.name }}</a></li>
@@ -115,6 +115,6 @@
 } @else {
   <div class="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-24 text-center">
     <p class="text-lg font-semibold text-brand-ink-secondary">Product not found.</p>
-    <a routerLink="/" class="btn-secondary mt-4">Back to shop</a>
+    <a routerLink="/home" class="btn-secondary mt-4">Back to shop</a>
   </div>
 }

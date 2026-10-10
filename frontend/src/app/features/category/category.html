@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
   <nav aria-label="Breadcrumb" class="mb-4 text-sm text-brand-ink-secondary">
     <ol class="flex flex-wrap items-center gap-1.5">
-      <li><a routerLink="/" class="font-medium transition hover:text-brand-red">Home</a></li>
+      <li><a routerLink="/home" class="font-medium transition hover:text-brand-red">Home</a></li>
       @if (category(); as c) {
         <li aria-hidden="true">›</li>
         <li aria-current="page" class="font-medium text-brand-charcoal">{{ c.name }}</li>
@@ -27,7 +27,7 @@
     <div class="glass-card-solid flex flex-col items-center gap-3 p-10 text-center">
       <h1 class="section-heading">Category not found</h1>
       <p class="text-sm text-brand-ink-secondary">This category may have been renamed or removed.</p>
-      <a routerLink="/" class="btn-primary mt-1">Browse all products</a>
+      <a routerLink="/home" class="btn-primary mt-1">Browse all products</a>
     </div>
   } @else {
     <header>

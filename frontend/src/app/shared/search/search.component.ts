@@ -309,7 +309,7 @@ export class SearchComponent {
       return;
     }
     this.commitSearchTerm();
-    this.router.navigate(['/'], { queryParams: { q: term } });
+    this.router.navigate(['/home'], { queryParams: { q: term } });
     this.finishNavigation();
   }
 
