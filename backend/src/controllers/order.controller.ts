@@ -9,6 +9,12 @@ import { toPaginationMeta, toSkipTake } from '../utils/pagination';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { queueOrderNotification } from '../services/notification.service';
 import {
+  sendOrderCancelledEmail,
+  sendOrderConfirmationEmail,
+  sendOrderRestructuredEmail,
+} from '../services/mail.service';
+import { OrderLine } from '../services/emailTemplates';
+import {
   ConfirmPaymentInput,
   CreateOrderInput,
   ListOrdersQuery,
@@ -47,7 +53,10 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   // supply them at checkout. Resolved once, used for the WhatsApp notification
   // on both the success and failure paths.
   const customer = customerId
-    ? await prisma.user.findUnique({ where: { id: customerId }, select: { name: true, mobile: true } })
+    ? await prisma.user.findUnique({
+        where: { id: customerId },
+        select: { name: true, mobile: true, email: true },
+      })
     : null;
   const contact = {
     customerName: customerId ? customer?.name : input.guestName,
@@ -87,6 +96,19 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
         pickupDate: order.pickupDate,
         pickupTime: order.pickupTime,
         createdAt: order.createdAt,
+      });
+
+      // Same fire-and-forget rule as the WhatsApp notification: a slow or broken
+      // mail server must not delay the order response. Guests have no address on
+      // file, so this is skipped for them and logged as such.
+      void sendOrderConfirmationEmail(customer?.email, {
+        orderNumber: order.orderNumber,
+        customerName: contact.customerName,
+        items: input.items as unknown as OrderLine[],
+        estimatedTotal,
+        pickupDate: order.pickupDate,
+        pickupTime: order.pickupTime,
+        notes: order.notes,
       });
 
       return sendSuccess(
@@ -167,6 +189,20 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
     data: { status },
     include: includeCustomer,
   });
+
+  // Only on the transition into CANCELLED — re-saving an already cancelled order
+  // should not post the customer a second cancellation notice.
+  if (status === OrderStatus.CANCELLED && existing.status !== OrderStatus.CANCELLED) {
+    void sendOrderCancelledEmail(order.customer?.email, {
+      orderNumber: order.orderNumber,
+      customerName: order.customer?.name ?? order.guestName,
+      items: order.items as unknown as OrderLine[],
+      estimatedTotal: Number(order.estimatedTotal),
+      pickupDate: order.pickupDate,
+      pickupTime: order.pickupTime,
+    });
+  }
+
   return sendSuccess(res, toOrderDTO(order));
 });
 
@@ -242,6 +278,23 @@ export const updateOrderItems = asyncHandler(async (req: Request, res: Response)
     },
     include: includeCustomer,
   });
+
+  // The customer agreed to a different basket than the one now recorded, so they
+  // are told what changed — including the old total, the part they care about.
+  void sendOrderRestructuredEmail(
+    order.customer?.email,
+    {
+      orderNumber: order.orderNumber,
+      customerName: order.customer?.name ?? order.guestName,
+      items,
+      estimatedTotal,
+      pickupDate: order.pickupDate,
+      pickupTime: order.pickupTime,
+      notes: order.notes,
+    },
+    Number(existing.estimatedTotal),
+  );
+
   return sendSuccess(res, toOrderDTO(order));
 });
 

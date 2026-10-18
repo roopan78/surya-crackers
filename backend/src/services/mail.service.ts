@@ -1,6 +1,15 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { prisma } from '../config/prisma';
 import { env } from '../config/env';
+import {
+  OrderEmailData,
+  RenderedEmail,
+  ShopIdentity,
+  orderCancelledEmail,
+  orderConfirmationEmail,
+  orderRestructuredEmail,
+  temporaryPasswordEmail,
+} from './emailTemplates';
 
 /**
  * Transactional email over plain SMTP.
@@ -306,85 +315,94 @@ async function sendViaZohoMail(message: MailMessage): Promise<boolean> {
   }
 }
 
-/** Store identity for the mail body — admin-editable via footer config. */
-async function getShopName(): Promise<string> {
+/**
+ * Shop identity for the mail bodies — admin-editable via footer config, with
+ * fallbacks so a database hiccup cannot stop an email going out.
+ */
+async function getShopIdentity(): Promise<ShopIdentity> {
+  const fallback: ShopIdentity = {
+    shopName: 'Surya Crackers',
+    phone: '',
+    whatsappNumber: '',
+    licenseNumber: '',
+    safetyDisclaimer: '',
+    siteUrl: env.PUBLIC_SITE_URL,
+  };
   try {
     const footer = await prisma.footerConfig.findUnique({ where: { id: 1 } });
-    return footer?.shopName || 'Surya Crackers';
+    if (!footer) return fallback;
+    return {
+      shopName: footer.shopName || fallback.shopName,
+      phone: footer.phone || '',
+      whatsappNumber: footer.whatsappNumber || '',
+      licenseNumber: footer.licenseNumber || '',
+      safetyDisclaimer: footer.safetyDisclaimer || '',
+      siteUrl: env.PUBLIC_SITE_URL,
+    };
   } catch {
-    return 'Surya Crackers';
+    return fallback;
   }
 }
 
-/** Minimal escaping — the only interpolated values are a name and a password. */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+async function send(rendered: RenderedEmail, to: string): Promise<boolean> {
+  return sendMail({ to, subject: rendered.subject, text: rendered.text, html: rendered.html });
 }
 
 /**
  * Tells a customer the password we generated for them. Sent once, when an
- * account signs in with Google and has no password of its own yet — from then
- * on they can sign in either way, and change the password from their profile.
+ * account signs in with Google and has no password of its own yet.
  */
 export async function sendTemporaryPasswordEmail(
   to: string,
   name: string | null,
   temporaryPassword: string,
 ): Promise<boolean> {
-  const shopName = await getShopName();
-  const greeting = name?.trim() ? `Hi ${name.trim()},` : 'Hi,';
-  const signInUrl = `${env.PUBLIC_SITE_URL.replace(/\/$/, '')}/login`;
+  const shop = await getShopIdentity();
+  return send(temporaryPasswordEmail(to, name, temporaryPassword, shop), to);
+}
 
-  const text = [
-    greeting,
-    '',
-    `Your ${shopName} account is ready. You signed in with Google, so we have also set up a password for you — use it if you ever want to sign in with your email address instead.`,
-    '',
-    `Email:    ${to}`,
-    `Password: ${temporaryPassword}`,
-    '',
-    'This is a temporary password. You can change it any time from My Profile once you are signed in.',
-    '',
-    `Sign in: ${signInUrl}`,
-    '',
-    'If you did not create this account, please ignore this email.',
-    '',
-    `— ${shopName}`,
-  ].join('\n');
+/**
+ * Order mail goes only to registered customers: a guest checkout collects a
+ * name and a mobile number, never an address to write to. Callers pass null in
+ * that case and the send is skipped, logged, and reported as not sent.
+ */
+async function sendOrderEmail(
+  to: string | null | undefined,
+  render: (shop: ShopIdentity) => RenderedEmail,
+  event: string,
+  orderNumber: string,
+): Promise<boolean> {
+  if (!to) {
+    console.info(logLine({ status: 'SKIPPED', event, orderNumber, reason: 'No email address on this order' }));
+    return false;
+  }
+  const shop = await getShopIdentity();
+  return send(render(shop), to);
+}
 
-  const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111827;line-height:1.6">
-      <p>${escapeHtml(greeting)}</p>
-      <p>
-        Your <strong>${escapeHtml(shopName)}</strong> account is ready. You signed in with Google, so we
-        have also set up a password for you &mdash; use it if you ever want to sign in with your email
-        address instead.
-      </p>
-      <table style="border-collapse:collapse;margin:20px 0;background:#f8f9fb;border-radius:12px">
-        <tr>
-          <td style="padding:14px 18px;color:#6b7280">Email</td>
-          <td style="padding:14px 18px;font-weight:bold">${escapeHtml(to)}</td>
-        </tr>
-        <tr>
-          <td style="padding:14px 18px;color:#6b7280">Password</td>
-          <td style="padding:14px 18px;font-family:monospace;font-size:17px;font-weight:bold;letter-spacing:1px">
-            ${escapeHtml(temporaryPassword)}
-          </td>
-        </tr>
-      </table>
-      <p>
-        This is a <strong>temporary password</strong>. You can change it any time from
-        <em>My Profile</em> once you are signed in.
-      </p>
-      <p><a href="${escapeHtml(signInUrl)}" style="color:#e63946;font-weight:bold">Sign in to ${escapeHtml(shopName)}</a></p>
-      <p style="color:#6b7280;font-size:13px">If you did not create this account, please ignore this email.</p>
-      <p style="color:#6b7280;font-size:13px">&mdash; ${escapeHtml(shopName)}</p>
-    </div>
-  `;
+export function sendOrderConfirmationEmail(
+  to: string | null | undefined,
+  order: OrderEmailData,
+): Promise<boolean> {
+  return sendOrderEmail(to, (shop) => orderConfirmationEmail(order, shop), 'ORDER_CONFIRMATION', order.orderNumber);
+}
 
-  return sendMail({ to, subject: `Your ${shopName} password`, text, html });
+export function sendOrderRestructuredEmail(
+  to: string | null | undefined,
+  order: OrderEmailData,
+  previousTotal?: number,
+): Promise<boolean> {
+  return sendOrderEmail(
+    to,
+    (shop) => orderRestructuredEmail(order, shop, previousTotal),
+    'ORDER_RESTRUCTURED',
+    order.orderNumber,
+  );
+}
+
+export function sendOrderCancelledEmail(
+  to: string | null | undefined,
+  order: OrderEmailData,
+): Promise<boolean> {
+  return sendOrderEmail(to, (shop) => orderCancelledEmail(order, shop), 'ORDER_CANCELLED', order.orderNumber);
 }

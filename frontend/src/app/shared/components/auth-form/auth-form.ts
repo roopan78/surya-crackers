@@ -112,14 +112,22 @@ export class AuthForm implements AfterViewInit {
     );
   }
 
-  private runAuth(request: ReturnType<typeof this.activeService.login>, fallbackError: string): void {
+  private runAuth(
+    request: ReturnType<typeof this.activeService.login>,
+    fallbackError: string,
+    // Google sign-in can be triggered from the one-tap card anywhere on the
+    // site, so dropping the customer on their profile reads as a detour. They
+    // go back to shopping instead; the email/password form, which they opened
+    // deliberately, still lands on the account page.
+    landing?: string,
+  ): void {
     this.submitting.set(true);
     this.errorMessage.set(null);
 
     request.subscribe({
       next: () => {
         this.submitting.set(false);
-        const fallback = this.mode() === 'admin' ? '/admin' : '/account';
+        const fallback = landing ?? (this.mode() === 'admin' ? '/admin' : '/account');
         this.router.navigateByUrl(this.route.snapshot.queryParamMap.get('redirectTo') ?? fallback);
       },
       error: (err: { error?: { message?: string } }) => {
@@ -142,6 +150,7 @@ export class AuthForm implements AfterViewInit {
         this.runAuth(
           this.activeService.loginWithGoogle(response.credential),
           'Could not sign you in with Google.',
+          this.mode() === 'admin' ? '/admin' : '/',
         ),
     });
 
