@@ -281,8 +281,18 @@ export class OrderManagement implements OnInit {
       this.toastService.error('This order has no usable mobile number.');
       return;
     }
-    const shopName = this.storefrontCatalog.footerConfig()?.shopName || 'Surya Crackers';
-    const url = buildWhatsAppUrl(number, buildOrderConfirmationMessage(order, shopName));
+    // Address and phone come from the shop's own footer config; each line is
+    // dropped from the message when it is not configured.
+    const footer = this.storefrontCatalog.footerConfig();
+    const primaryAddress = footer?.addresses?.find((entry) => entry.isPrimary) ?? footer?.addresses?.[0];
+    const url = buildWhatsAppUrl(
+      number,
+      buildOrderConfirmationMessage(order, {
+        shopName: footer?.shopName || 'Surya Crackers',
+        phone: footer?.phone,
+        address: primaryAddress?.address,
+      }),
+    );
     window.open(url, '_blank', 'noopener');
   }
 
