@@ -169,7 +169,11 @@ export async function changePassword(
   }
 
   if (!(await verifyPassword(currentPassword, user.passwordHash))) {
-    throw ApiError.unauthorized('Your current password is incorrect.');
+    // 403, not 401: the caller IS authenticated — it is the password typed into
+    // the form that is wrong. The frontend's auth interceptor tears the session
+    // down on any 401, so a 401 here silently logs a customer out over one typo,
+    // taking the "replace your temporary password" notice with it.
+    throw ApiError.forbidden('Your current password is incorrect.');
   }
 
   if (await verifyPassword(newPassword, user.passwordHash)) {
