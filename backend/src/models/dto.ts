@@ -92,6 +92,8 @@ export function toUserDTO(user: User) {
     mobile: user.mobile,
     role: user.role,
     isActive: user.isActive,
+    deactivatedAt: user.deactivatedAt,
+    deactivationSource: user.deactivationSource,
     passwordIsTemporary: user.passwordIsTemporary,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

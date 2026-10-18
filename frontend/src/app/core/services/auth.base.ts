@@ -93,6 +93,24 @@ export abstract class AuthServiceBase {
     );
   }
 
+  /**
+   * Switches the account off at the customer's own request. The session is
+   * cleared locally because the API has already invalidated the cookie and the
+   * account can no longer sign in — leaving the stored token would keep the UI
+   * pretending otherwise.
+   */
+  deactivateAccount(): Observable<{ purgeAt: string }> {
+    return this.http
+      .post<ApiSuccess<{ message: string; purgeAt: string }>>(
+        `${environment.apiUrl}/auth/me/deactivate`,
+        {},
+      )
+      .pipe(
+        tap(() => this.clearSession()),
+        map((res) => ({ purgeAt: res.data.purgeAt })),
+      );
+  }
+
   logout(): void {
     this.clearSession();
     this.http

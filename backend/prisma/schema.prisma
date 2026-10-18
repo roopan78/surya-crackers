@@ -13,6 +13,14 @@ enum Role {
   CUSTOMER
 }
 
+// Who switched the account off. A customer who deactivated their own account
+// is let back in by simply signing in; one an admin switched off stays off,
+// because that is a staff decision the customer must not be able to undo.
+enum DeactivationSource {
+  SELF
+  ADMIN
+}
+
 enum OrderStatus {
   PENDING
   READY_FOR_PICKUP
@@ -56,26 +64,32 @@ enum NotificationStatus {
 model User {
   id String @id @default(cuid())
 
-  email String @unique
+  email               String  @unique
   // Null for Google-only accounts, which have no local password to check.
-  passwordHash String?
+  passwordHash        String?
   // Google's stable subject claim; null until/unless the account links Google.
-  googleId String? @unique
+  googleId            String? @unique
   // True while passwordHash holds a password we generated and emailed rather
   // than one the customer chose (see auth.service.issueTemporaryPassword).
   // Purely advisory — the profile page uses it to nudge them to replace it.
   passwordIsTemporary Boolean @default(false)
 
-  name      String?
-  mobile    String?
-  role      Role     @default(CUSTOMER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name               String?
+  mobile             String?
+  role               Role                @default(CUSTOMER)
+  isActive           Boolean             @default(true)
+  // Set when isActive goes false, null whenever the account is live. The purge
+  // job deletes accounts deactivated more than 90 days ago, so this doubles as
+  // the countdown clock.
+  deactivatedAt      DateTime?
+  deactivationSource DeactivationSource?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   orders OrderLedger[]
 
   @@index([role])
+  @@index([deactivatedAt])
   @@map("users")
 }
 
@@ -175,8 +189,8 @@ model ShopAddress {
 }
 
 model OrderLedger {
-  id               String              @id @default(cuid())
-  orderNumber      String              @unique
+  id               String               @id @default(cuid())
+  orderNumber      String               @unique
   customerId       String?
   guestName        String?
   guestMobile      String?
@@ -184,9 +198,9 @@ model OrderLedger {
   pickupTime       String?
   notes            String?
   items            Json
-  estimatedTotal   Decimal             @db.Decimal(10, 2)
-  status           OrderStatus         @default(PENDING)
-  paymentStatus    PaymentStatus       @default(PENDING)
+  estimatedTotal   Decimal              @db.Decimal(10, 2)
+  status           OrderStatus          @default(PENDING)
+  paymentStatus    PaymentStatus        @default(PENDING)
   // Null until staff decide it. Orders are placed on hold with no method chosen
   // — the customer never picks one — and it is set when payment is recorded.
   paymentProvider  PaymentProviderType?
@@ -194,8 +208,8 @@ model OrderLedger {
   // 12-digit UPI transaction reference from the withdrawn UPI_DIRECT flow. Kept
   // for the historical orders that have one; nothing writes it anymore.
   utrNumber        String?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   customer      User?             @relation(fields: [customerId], references: [id])
   notifications NotificationLog[]
@@ -211,8 +225,8 @@ model OrderLedger {
 /// unique (orderId, event, channel) index is claimed before the provider call,
 /// so a retried request can never send the same message twice.
 model NotificationLog {
-  id      String  @id @default(cuid())
-  orderId String?
+  id          String  @id @default(cuid())
+  orderId     String?
   // Kept denormalized so failure notifications (which have no order row yet)
   // are still traceable to the order number the customer was quoted.
   orderNumber String?

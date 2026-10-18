@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { LucideAngularModule, Save, CheckCircle2, LogOut, KeyRound, TriangleAlert } from 'lucide-angular';
+import { LucideAngularModule, Save, CheckCircle2, LogOut, KeyRound, TriangleAlert, UserMinus } from 'lucide-angular';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
 import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, ConfirmModal],
   templateUrl: './profile.html',
 })
 export class Profile {
@@ -21,11 +22,16 @@ export class Profile {
   readonly LogOutIcon = LogOut;
   readonly KeyRoundIcon = KeyRound;
   readonly TriangleAlertIcon = TriangleAlert;
+  readonly UserMinusIcon = UserMinus;
 
   private readonly seoService = inject(SeoService);
 
   readonly saving = signal(false);
   readonly saved = signal(false);
+
+  readonly deactivating = signal(false);
+  readonly confirmingDeactivate = signal(false);
+  readonly deactivateError = signal<string | null>(null);
 
   readonly changingPassword = signal(false);
   readonly passwordChanged = signal(false);
@@ -91,6 +97,29 @@ export class Profile {
       error: (err: { error?: { message?: string } }) => {
         this.changingPassword.set(false);
         this.passwordError.set(err.error?.message ?? 'Could not change your password. Please try again.');
+      },
+    });
+  }
+
+  deactivateAccount(): void {
+    if (this.deactivating()) return;
+    this.deactivating.set(true);
+    this.deactivateError.set(null);
+
+    this.customerAuthService.deactivateAccount().subscribe({
+      next: () => {
+        this.deactivating.set(false);
+        this.confirmingDeactivate.set(false);
+        this.router.navigateByUrl('/');
+      },
+      // The API refuses while an order is still in progress and names it, so
+      // the customer is told which order to settle rather than just "failed".
+      error: (err: { error?: { message?: string } }) => {
+        this.deactivating.set(false);
+        this.confirmingDeactivate.set(false);
+        this.deactivateError.set(
+          err.error?.message ?? 'Could not deactivate your account. Please try again.',
+        );
       },
     });
   }

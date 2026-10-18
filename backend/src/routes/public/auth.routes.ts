@@ -17,6 +17,7 @@ import {
   me,
   updateProfile,
   changeOwnPassword,
+  deactivateOwnAccountHandler,
 } from '../../controllers/auth.controller';
 
 const router = Router();
@@ -37,5 +38,7 @@ router.post(
   validate(changePasswordSchema),
   changeOwnPassword,
 );
+// No body to validate — the account to switch off is the one the token names.
+router.post('/me/deactivate', authenticateUser, deactivateOwnAccountHandler);
 
 export default router;

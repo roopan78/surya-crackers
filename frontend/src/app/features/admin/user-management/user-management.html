@@ -1,6 +1,8 @@
 <div>
   <h1 class="section-heading">Users &amp; Roles</h1>
-  <p class="mt-1 text-sm text-brand-ink-secondary">View customers and admins, and assign roles. Only a Super Admin can change roles.</p>
+  <p class="mt-1 text-sm text-brand-ink-secondary">
+    View customers and admins, and assign roles. Only a Super Admin can change roles or delete an account.
+  </p>
 
   <div class="glass-card-solid mt-6 p-4">
     <div class="relative">
@@ -27,12 +29,14 @@
             <th class="px-5 py-3 font-semibold">Name</th>
             <th class="px-5 py-3 font-semibold">Mobile</th>
             <th class="px-5 py-3 font-semibold">Role</th>
+            <th class="px-5 py-3 font-semibold">Status</th>
             <th class="px-5 py-3 font-semibold">Joined</th>
+            <th class="px-5 py-3 text-right font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody>
           @for (user of userService.users(); track user.id) {
-            <tr class="border-t border-black/5">
+            <tr class="border-t border-black/5" [class.opacity-60]="!user.isActive">
               <td class="px-5 py-3 font-semibold text-brand-charcoal">{{ user.email }}</td>
               <td class="px-5 py-3 text-brand-ink-secondary">{{ user.name || '—' }}</td>
               <td class="px-5 py-3 text-brand-ink-secondary">{{ user.mobile || '—' }}</td>
@@ -54,15 +58,91 @@
                   </select>
                 }
               </td>
+
+              <td class="px-5 py-3">
+                @if (user.isActive) {
+                  <span class="text-xs font-semibold text-emerald-700">Active</span>
+                } @else {
+                  <span class="text-xs font-semibold text-brand-red">Deactivated</span>
+                  <span class="block text-[11px] text-brand-ink-muted">
+                    {{ user.deactivationSource === 'SELF' ? 'by customer' : 'by staff' }} ·
+                    deletes in {{ daysUntilPurge(user) }}d
+                  </span>
+                }
+              </td>
+
               <td class="px-5 py-3 text-brand-ink-muted">{{ user.createdAt | date: 'mediumDate' }}</td>
+
+              <td class="px-5 py-3">
+                @if (user.id === currentUserId) {
+                  <span class="block text-right text-[11px] text-brand-ink-muted">—</span>
+                } @else {
+                  <div class="flex items-center justify-end gap-2">
+                    @if (user.isActive) {
+                      <button
+                        type="button"
+                        class="btn-ghost !px-2 !py-1.5 text-xs"
+                        [disabled]="busyId() === user.id"
+                        (click)="pendingDeactivate.set(user)"
+                      >
+                        <lucide-icon [img]="UserMinusIcon" class="h-3.5 w-3.5" />
+                        Deactivate
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-ghost !px-2 !py-1.5 text-xs !text-emerald-700"
+                        [disabled]="busyId() === user.id"
+                        (click)="reactivate(user)"
+                      >
+                        <lucide-icon [img]="UserCheckIcon" class="h-3.5 w-3.5" />
+                        Reactivate
+                      </button>
+                    }
+
+                    <!-- Deleting is irreversible, so only a Super Admin sees it at all. -->
+                    @if (isSuperAdmin()) {
+                      <button
+                        type="button"
+                        class="btn-ghost !px-2 !py-1.5 text-xs !text-brand-red"
+                        [disabled]="busyId() === user.id"
+                        (click)="pendingDelete.set(user)"
+                      >
+                        <lucide-icon [img]="Trash2Icon" class="h-3.5 w-3.5" />
+                        Delete
+                      </button>
+                    }
+                  </div>
+                }
+              </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="px-5 py-10 text-center text-sm text-brand-ink-muted">No users found.</td>
+              <td colspan="7" class="px-5 py-10 text-center text-sm text-brand-ink-muted">No users found.</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
   </div>
+
+  @if (pendingDeactivate(); as user) {
+    <app-confirm-modal
+      title="Deactivate this account?"
+      [message]="deactivateMessage(user)"
+      confirmLabel="Deactivate"
+      (confirmed)="confirmDeactivate()"
+      (cancelled)="pendingDeactivate.set(null)"
+    />
+  }
+
+  @if (pendingDelete(); as user) {
+    <app-confirm-modal
+      title="Delete this account permanently?"
+      [message]="deleteMessage(user)"
+      confirmLabel="Delete forever"
+      (confirmed)="confirmDelete()"
+      (cancelled)="pendingDelete.set(null)"
+    />
+  }
 </div>

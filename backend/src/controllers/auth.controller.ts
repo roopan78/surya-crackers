@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError';
 import { sendSuccess } from '../utils/ApiResponse';
 import { toUserDTO } from '../models/dto';
 import { AuthResult, changePassword, login, loginWithGoogle, register } from '../services/auth.service';
+import { deactivateOwnAccount } from '../services/account.service';
 import {
   ChangePasswordInput,
   GoogleLoginInput,
@@ -58,6 +59,21 @@ export const changeOwnPassword = asyncHandler(async (req: Request, res: Response
   const { currentPassword, newPassword } = req.body as ChangePasswordInput;
   await changePassword(req.user.sub, currentPassword, newPassword);
   return sendSuccess(res, { message: 'Password updated' });
+});
+
+// POST /api/auth/me/deactivate — a customer switching off their own account.
+// Clears the session cookie too: the token stays valid until it expires, so
+// leaving it in place would keep the browser acting signed in.
+export const deactivateOwnAccountHandler = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw ApiError.unauthorized('Authentication required');
+  }
+  const { purgeAt } = await deactivateOwnAccount(req.user.sub);
+  res.clearCookie('token');
+  return sendSuccess(res, {
+    message: 'Your account has been deactivated.',
+    purgeAt,
+  });
 });
 
 // PATCH /api/auth/me — a user updating their own profile (email/role are not self-editable)

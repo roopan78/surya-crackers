@@ -11,6 +11,7 @@ import {
 } from '../utils/password';
 import { signUserToken } from '../utils/jwt';
 import { sendTemporaryPasswordEmail } from './mail.service';
+import { restoreIfSelfDeactivated } from './account.service';
 
 export interface AuthResult {
   token: string;
@@ -54,11 +55,15 @@ export async function login(rawEmail: string, password: string): Promise<AuthRes
   if (!user || !user.passwordHash || !(await verifyPassword(password, user.passwordHash))) {
     throw ApiError.unauthorized('Incorrect email or password.');
   }
-  if (!user.isActive) {
+  // Signing in is how a customer undoes their own deactivation: the password is
+  // already proven above, so this restores the account and lets them straight
+  // in. An account staff switched off is not theirs to undo.
+  const revived = await restoreIfSelfDeactivated(user);
+  if (!revived.isActive) {
     throw ApiError.forbidden('This account has been deactivated.');
   }
 
-  return toAuthResult(await ensureSuperAdmin(user));
+  return toAuthResult(await ensureSuperAdmin(revived));
 }
 
 export async function loginWithGoogle(idToken: string): Promise<AuthResult> {
@@ -90,14 +95,16 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResult> {
     return toAuthResult(await issueTemporaryPassword(created));
   }
 
-  if (!existing.isActive) {
+  // Same second chance as the password route — Google has just vouched for them.
+  const revivedExisting = await restoreIfSelfDeactivated(existing);
+  if (!revivedExisting.isActive) {
     throw ApiError.forbidden('This account has been deactivated.');
   }
 
   // Link Google to a pre-existing password account on first Google sign-in.
-  const linked = existing.googleId
-    ? existing
-    : await prisma.user.update({ where: { id: existing.id }, data: { googleId: payload.sub } });
+  const linked = revivedExisting.googleId
+    ? revivedExisting
+    : await prisma.user.update({ where: { id: revivedExisting.id }, data: { googleId: payload.sub } });
 
   return toAuthResult(await issueTemporaryPassword(await ensureSuperAdmin(linked)));
 }

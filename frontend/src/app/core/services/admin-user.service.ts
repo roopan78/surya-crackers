@@ -6,6 +6,17 @@ import { ApiListMeta, ApiSuccess, AuthUser, Role } from '../models';
 
 const ADMIN_USERS_BASE = `${environment.apiUrl}/admin/users`;
 
+export interface ActiveOrder {
+  orderNumber: string;
+  status: string;
+}
+
+export interface DeleteUserResult {
+  message: string;
+  cancelledOrders: number;
+  detachedOrders: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminUserService {
   private readonly http = inject(HttpClient);
@@ -36,5 +47,32 @@ export class AdminUserService {
 
   updateRole(id: string, role: Role): Observable<AuthUser> {
     return this.http.patch<ApiSuccess<AuthUser>>(`${ADMIN_USERS_BASE}/${id}/role`, { role }).pipe(map((res) => res.data));
+  }
+
+  /** Reversible: the account is switched off but kept for 90 days. */
+  deactivate(id: string): Observable<AuthUser> {
+    return this.http
+      .post<ApiSuccess<AuthUser>>(`${ADMIN_USERS_BASE}/${id}/deactivate`, {})
+      .pipe(map((res) => res.data));
+  }
+
+  reactivate(id: string): Observable<AuthUser> {
+    return this.http
+      .post<ApiSuccess<AuthUser>>(`${ADMIN_USERS_BASE}/${id}/reactivate`, {})
+      .pipe(map((res) => res.data));
+  }
+
+  /** Irreversible, SUPER_ADMIN only. Cancels whatever is still in progress. */
+  deleteUser(id: string): Observable<DeleteUserResult> {
+    return this.http
+      .delete<ApiSuccess<DeleteUserResult>>(`${ADMIN_USERS_BASE}/${id}`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** What is blocking a deactivation, so the screen can name the orders. */
+  activeOrders(id: string): Observable<ActiveOrder[]> {
+    return this.http
+      .get<ApiSuccess<ActiveOrder[]>>(`${ADMIN_USERS_BASE}/${id}/active-orders`)
+      .pipe(map((res) => res.data));
   }
 }
