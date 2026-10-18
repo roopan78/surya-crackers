@@ -1,0 +1,52 @@
+<div class="relative inline-block">
+  <button
+    #trigger
+    type="button"
+    class="flex cursor-pointer items-center gap-1.5 rounded-full border py-1.5 pl-3.5 pr-2.5 text-xs font-bold tracking-tight outline-none transition focus-visible:ring-2 focus-visible:ring-brand-red/25"
+    [ngClass]="triggerClass()"
+    [attr.aria-label]="ariaLabel()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    (click)="toggle()"
+  >
+    <span>{{ selected()?.label ?? value() }}</span>
+    <lucide-icon
+      [img]="ChevronDownIcon"
+      class="h-3.5 w-3.5 opacity-70 transition-transform"
+      [class.rotate-180]="open()"
+    />
+  </button>
+
+  @if (open()) {
+    <!--
+      Fixed, not absolute: the surrounding table scrolls horizontally, and a
+      scroll container clips the other axis too — an absolute panel would be
+      cut off at the row edge.
+    -->
+    <div
+      role="listbox"
+      class="fixed z-[70] overflow-hidden rounded-2xl border border-black/5 bg-white p-1.5 shadow-xl shadow-black/10"
+      [style.top.px]="panelTop()"
+      [style.left.px]="panelLeft()"
+      [style.min-width.px]="panelWidth()"
+    >
+      @for (option of options(); track option.value; let i = $index) {
+        <button
+          type="button"
+          role="option"
+          [attr.aria-selected]="option.value === value()"
+          class="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-brand-charcoal transition"
+          [class.bg-brand-mist]="i === activeIndex()"
+          (mouseenter)="activeIndex.set(i)"
+          (click)="choose(option)"
+        >
+          <span class="h-2 w-2 shrink-0 rounded-full" [ngClass]="option.dotClass ?? 'bg-brand-ink-muted'"></span>
+          <span class="flex-1">{{ option.label }}</span>
+          @if (option.value === value()) {
+            <lucide-icon [img]="CheckIcon" class="h-3.5 w-3.5 text-brand-red" />
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

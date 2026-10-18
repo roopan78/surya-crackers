@@ -7,6 +7,7 @@ import { AdminCatalogService } from '../../../core/services/admin-catalog.servic
 import { Order, OrderItem, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { PillSelect, PillSelectOption } from '../../../shared/components/pill-select/pill-select';
 
 const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
   CASH_ON_PICKUP: 'Cash',
@@ -14,12 +15,34 @@ const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
   PHONEPE: 'PhonePe',
 };
 
-const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
-  { value: '', label: 'All Statuses' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'READY_FOR_PICKUP', label: 'Ready for Pickup' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'CANCELLED', label: 'Cancelled' },
+/** Colour per state, used by the pill, the dot in the list, and nothing else. */
+const STATUS_STYLE: Record<OrderStatus, { pill: string; dot: string }> = {
+  PENDING: { pill: 'border-amber-200 bg-amber-50 text-amber-700', dot: 'bg-amber-400' },
+  READY_FOR_PICKUP: { pill: 'border-sky-200 bg-sky-50 text-sky-700', dot: 'bg-sky-400' },
+  COMPLETED: { pill: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
+  CANCELLED: { pill: 'border-rose-200 bg-rose-50 text-rose-700', dot: 'bg-rose-400' },
+};
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING: 'Pending',
+  READY_FOR_PICKUP: 'Ready for Pickup',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+};
+
+const ORDER_STATUSES: OrderStatus[] = ['PENDING', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED'];
+
+/** The row control: every state, each with its dot. */
+const STATUS_SELECT_OPTIONS: PillSelectOption[] = ORDER_STATUSES.map((status) => ({
+  value: status,
+  label: STATUS_LABELS[status],
+  dotClass: STATUS_STYLE[status].dot,
+}));
+
+/** The filter above the table: the same list, plus "everything". */
+const STATUS_FILTER_OPTIONS: PillSelectOption[] = [
+  { value: '', label: 'All Statuses', dotClass: 'bg-brand-ink-muted' },
+  ...STATUS_SELECT_OPTIONS,
 ];
 
 const PAGE_SIZE = 10;
@@ -37,7 +60,7 @@ const PICKER_RESULTS = 8;
 @Component({
   selector: 'app-order-management',
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, LucideAngularModule, ConfirmModal],
+  imports: [FormsModule, DatePipe, LucideAngularModule, ConfirmModal, PillSelect],
   templateUrl: './order-management.html',
 })
 export class OrderManagement implements OnInit {
@@ -53,7 +76,8 @@ export class OrderManagement implements OnInit {
   readonly PlusIcon = Plus;
   readonly TrashIcon = Trash2;
 
-  readonly statusOptions = STATUS_OPTIONS;
+  readonly statusOptions = STATUS_SELECT_OPTIONS;
+  readonly statusFilterOptions = STATUS_FILTER_OPTIONS;
   readonly statusFilter = signal<OrderStatus | ''>('');
 
   /**
@@ -186,16 +210,7 @@ export class OrderManagement implements OnInit {
 
   /** Colour the control by what it is showing, the way the status badges do. */
   statusClass(order: Order): string {
-    switch (this.shownStatus(order)) {
-      case 'COMPLETED':
-        return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-      case 'READY_FOR_PICKUP':
-        return 'border-sky-200 bg-sky-50 text-sky-700';
-      case 'CANCELLED':
-        return 'border-rose-200 bg-rose-50 text-rose-700';
-      default:
-        return 'border-amber-200 bg-amber-50 text-amber-700';
-    }
+    return STATUS_STYLE[this.shownStatus(order)].pill;
   }
 
   private clearDraft(id: string): void {
