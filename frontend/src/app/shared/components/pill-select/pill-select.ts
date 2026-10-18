@@ -1,7 +1,9 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
+  Injectable,
   computed,
   inject,
   input,
@@ -19,6 +21,32 @@ export interface PillSelectOption {
   pillClass?: string;
   /** Tailwind background class for the dot beside the option in the list. */
   dotClass?: string;
+}
+
+/**
+ * Keeps at most one list open across the whole page.
+ *
+ * Closing the others cannot be left to a document click listener: the status
+ * cell stops click propagation so the row does not expand underneath, and a
+ * stopped event never reaches document — which left every dropdown the user
+ * touched still hanging open.
+ */
+@Injectable({ providedIn: 'root' })
+export class PillSelectRegistry {
+  private current: { close: () => void } | null = null;
+
+  opened(instance: { close: () => void }): void {
+    if (this.current && this.current !== instance) {
+      this.current.close();
+    }
+    this.current = instance;
+  }
+
+  closed(instance: { close: () => void }): void {
+    if (this.current === instance) {
+      this.current = null;
+    }
+  }
 }
 
 /**
@@ -53,7 +81,20 @@ export class PillSelect {
   readonly ChevronDownIcon = ChevronDown;
 
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly registry = inject(PillSelectRegistry);
   private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>('trigger');
+
+  constructor() {
+    // Capture phase, so a parent calling stopPropagation — as the status cell
+    // does to keep the row from expanding — cannot hide the click from us.
+    const onPointerDown = (event: Event) => {
+      if (this.open() && !this.host.nativeElement.contains(event.target as Node)) {
+        this.close();
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    inject(DestroyRef).onDestroy(() => document.removeEventListener('pointerdown', onPointerDown, true));
+  }
 
   readonly open = signal(false);
   readonly panelTop = signal(0);
@@ -72,11 +113,13 @@ export class PillSelect {
     this.position();
     this.activeIndex.set(this.options().findIndex((option) => option.value === this.value()));
     this.open.set(true);
+    this.registry.opened(this);
   }
 
   close(): void {
     this.open.set(false);
     this.activeIndex.set(-1);
+    this.registry.closed(this);
   }
 
   choose(option: PillSelectOption): void {
@@ -98,13 +141,6 @@ export class PillSelect {
     this.panelTop.set(openUpwards ? rect.top - estimatedHeight - 6 : rect.bottom + 6);
     this.panelLeft.set(rect.left);
     this.panelWidth.set(Math.max(rect.width, 180));
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.open() && !this.host.nativeElement.contains(event.target as Node)) {
-      this.close();
-    }
   }
 
   // Scrolling or resizing would leave a fixed panel floating away from its
