@@ -259,11 +259,15 @@ export class OrderManagement implements OnInit {
   }
 
   /**
-   * Whether this order can be messaged — a mobile number that wa.me will accept.
-   * Hidden rather than broken when the stored number makes no sense.
+   * Offered only once an order is READY_FOR_PICKUP — that is the point staff
+   * have checked the stock and are telling the customer to come, so a
+   * confirmation sent earlier would promise something not yet verified.
+   *
+   * Also needs a mobile number wa.me will accept; the button hides rather than
+   * opening a broken chat when the stored number makes no sense.
    */
   canWhatsApp(order: Order): boolean {
-    return toWhatsAppNumber(order.customerMobile) !== null;
+    return order.status === 'READY_FOR_PICKUP' && toWhatsAppNumber(order.customerMobile) !== null;
   }
 
   /**
