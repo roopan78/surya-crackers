@@ -51,7 +51,27 @@
                   {{ order.customerType === 'REGISTERED' ? 'Registered' : 'Guest' }}
                 </span>
               </td>
-              <td class="px-5 py-3 text-brand-ink-secondary">{{ order.customerMobile }}</td>
+              <td class="px-5 py-3 text-brand-ink-secondary" (click)="$event.stopPropagation()">
+                <div class="flex items-center gap-2">
+                  <span>{{ order.customerMobile }}</span>
+                  <!--
+                    Opens the admin's own WhatsApp with the confirmation typed
+                    out; they press send, so it comes from the shop's number.
+                  -->
+                  @if (canWhatsApp(order)) {
+                    <button
+                      type="button"
+                      class="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-100"
+                      title="Send the order confirmation on WhatsApp"
+                      aria-label="Send the order confirmation on WhatsApp"
+                      (click)="sendWhatsAppConfirmation(order)"
+                    >
+                      <lucide-icon [img]="MessageCircleIcon" class="h-3 w-3" />
+                      Confirm
+                    </button>
+                  }
+                </div>
+              </td>
               <td class="px-5 py-3 font-semibold text-brand-charcoal">₹{{ order.estimatedTotal }}</td>
               <td class="px-5 py-3 text-brand-ink-secondary">
                 {{ order.pickupDate ? (order.pickupDate | date: 'mediumDate') : '—' }}

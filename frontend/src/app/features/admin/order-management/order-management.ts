@@ -1,13 +1,29 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, NgClass } from '@angular/common';
-import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package, Pencil, Plus, Trash2 } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+  Package,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-angular';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
 import { Order, OrderItem, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { PillSelect, PillSelectOption } from '../../../shared/components/pill-select/pill-select';
+import { CatalogService } from '../../../core/services/catalog.service';
+import {
+  buildOrderConfirmationMessage,
+  buildWhatsAppUrl,
+  toWhatsAppNumber,
+} from '../../../shared/utils/whatsapp-confirmation.util';
 
 const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
   CASH_ON_PICKUP: 'Cash',
@@ -67,10 +83,15 @@ export class OrderManagement implements OnInit {
   readonly orderService = inject(AdminOrderService);
   readonly catalogService = inject(AdminCatalogService);
   private readonly toastService = inject(ToastService);
+  // The storefront catalog carries the shop's own footer config, which is
+  // where the shop name in the message comes from. Empty in admin until the
+  // storefront has loaded, hence the fallback at the call site.
+  private readonly storefrontCatalog = inject(CatalogService);
 
   readonly ChevronDownIcon = ChevronDown;
   readonly ChevronLeftIcon = ChevronLeft;
   readonly ChevronRightIcon = ChevronRight;
+  readonly MessageCircleIcon = MessageCircle;
   readonly PackageIcon = Package;
   readonly PencilIcon = Pencil;
   readonly PlusIcon = Plus;
@@ -235,6 +256,30 @@ export class OrderManagement implements OnInit {
         this.toastService.error('Could not update order status — please try again.');
       },
     });
+  }
+
+  /**
+   * Whether this order can be messaged — a mobile number that wa.me will accept.
+   * Hidden rather than broken when the stored number makes no sense.
+   */
+  canWhatsApp(order: Order): boolean {
+    return toWhatsAppNumber(order.customerMobile) !== null;
+  }
+
+  /**
+   * Opens WhatsApp with the confirmation typed out, ready for staff to send
+   * from the shop's own number. Nothing is sent from here — the admin presses
+   * send in WhatsApp, so the customer gets a real thread they can reply to.
+   */
+  sendWhatsAppConfirmation(order: Order): void {
+    const number = toWhatsAppNumber(order.customerMobile);
+    if (!number) {
+      this.toastService.error('This order has no usable mobile number.');
+      return;
+    }
+    const shopName = this.storefrontCatalog.footerConfig()?.shopName || 'Surya Crackers';
+    const url = buildWhatsAppUrl(number, buildOrderConfirmationMessage(order, shopName));
+    window.open(url, '_blank', 'noopener');
   }
 
   /** Anything not yet settled can be recorded as paid, whatever the method. */
