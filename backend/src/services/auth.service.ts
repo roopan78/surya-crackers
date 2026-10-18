@@ -92,7 +92,8 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResult> {
         role: isSuperAdminEmail(email) ? Role.SUPER_ADMIN : Role.CUSTOMER,
       },
     });
-    return toAuthResult(await issueTemporaryPassword(created));
+    void issueTemporaryPassword(created);
+    return toAuthResult(created);
   }
 
   // Same second chance as the password route — Google has just vouched for them.
@@ -106,7 +107,9 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResult> {
     ? revivedExisting
     : await prisma.user.update({ where: { id: revivedExisting.id }, data: { googleId: payload.sub } });
 
-  return toAuthResult(await issueTemporaryPassword(await ensureSuperAdmin(linked)));
+  const ready = await ensureSuperAdmin(linked);
+  void issueTemporaryPassword(ready);
+  return toAuthResult(ready);
 }
 
 /**
@@ -122,6 +125,12 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResult> {
  * missing SMTP config or a bounced send can never leave someone holding a
  * password they were never told. It also never throws — a mail problem must not
  * cost the customer their sign-in.
+ *
+ * Callers must NOT await this. Sending happens over the network to a third
+ * party, and sign-in is not allowed to wait on it: when the host could not
+ * reach the SMTP server at all, awaiting turned every Google sign-in into a
+ * timeout-long hang. The password simply arrives a moment after the customer
+ * is already inside.
  */
 async function issueTemporaryPassword(user: User): Promise<User> {
   if (user.passwordHash) {

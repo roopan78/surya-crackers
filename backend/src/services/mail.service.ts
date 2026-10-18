@@ -37,6 +37,12 @@ function getTransporter(): Transporter | null {
     port: env.SMTP_PORT,
     secure: env.SMTP_SECURE,
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
+    // Nodemailer waits two minutes by default before giving up on a connection.
+    // A host that silently drops outbound SMTP — which is how this first broke
+    // in production — then holds the caller for that long. Fail in seconds.
+    connectionTimeout: 10_000,
+    greetingTimeout: 8_000,
+    socketTimeout: 15_000,
   });
   return cachedTransporter;
 }
