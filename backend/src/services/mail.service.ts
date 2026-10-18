@@ -23,13 +23,95 @@ export interface MailMessage {
 
 let cachedTransporter: Transporter | null = null;
 
-/** False when SMTP credentials are missing — every send is then skipped. */
-export function isMailConfigured(): boolean {
+/** HTTPS delivery is preferred wherever it is configured — see sendViaZeptoMail. */
+function zeptoMailConfigured(): boolean {
+  return Boolean(env.ZEPTOMAIL_TOKEN);
+}
+
+function smtpConfigured(): boolean {
   return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD);
 }
 
+/** False when neither transport is set up — every send is then skipped. */
+export function isMailConfigured(): boolean {
+  return zeptoMailConfigured() || smtpConfigured();
+}
+
+/**
+ * Splits a MAIL_FROM header into the parts ZeptoMail wants separately.
+ * 'Surya Crackers <info@shop.com>' -> { address: 'info@shop.com', name: 'Surya Crackers' }
+ */
+function parseFrom(value: string): { address: string; name?: string } {
+  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(value);
+  if (match) {
+    return { address: match[2].trim(), name: match[1].replace(/^"|"$/g, '').trim() || undefined };
+  }
+  return { address: value.trim() };
+}
+
+/**
+ * Sends over ZeptoMail's HTTPS API rather than SMTP.
+ *
+ * Necessary, not merely tidy: this host cannot open an outbound SMTP connection
+ * to Zoho at all — 587 and 465 both time out — so the only way mail leaves the
+ * server is over 443, the same path everything else already uses.
+ */
+async function sendViaZeptoMail(message: MailMessage): Promise<boolean> {
+  const from = parseFrom(env.MAIL_FROM || env.SMTP_USER);
+  try {
+    const response = await fetch(env.ZEPTOMAIL_API_URL, {
+      method: 'POST',
+      headers: {
+        // ZeptoMail's own scheme — the token already carries the prefix on some
+        // accounts, so it is only added when missing.
+        Authorization: env.ZEPTOMAIL_TOKEN.startsWith('Zoho-enczapikey')
+          ? env.ZEPTOMAIL_TOKEN
+          : `Zoho-enczapikey ${env.ZEPTOMAIL_TOKEN}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        from: { address: from.address, name: from.name },
+        to: [{ email_address: { address: message.to } }],
+        subject: message.subject,
+        textbody: message.text,
+        htmlbody: message.html,
+      }),
+      // Same reasoning as the SMTP timeouts: a hung provider must cost seconds.
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      console.error(
+        logLine({
+          status: 'FAILED',
+          via: 'zeptomail',
+          subject: message.subject,
+          reason: `HTTP ${response.status}`,
+          detail: detail.slice(0, 300),
+        }),
+      );
+      return false;
+    }
+
+    console.info(logLine({ status: 'SENT', via: 'zeptomail', subject: message.subject }));
+    return true;
+  } catch (error) {
+    console.error(
+      logLine({
+        status: 'FAILED',
+        via: 'zeptomail',
+        subject: message.subject,
+        reason: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    return false;
+  }
+}
+
 function getTransporter(): Transporter | null {
-  if (!isMailConfigured()) {
+  if (!smtpConfigured()) {
     return null;
   }
   cachedTransporter ??= nodemailer.createTransport({
@@ -56,9 +138,13 @@ function logLine(fields: Record<string, unknown>): string {
  * what an unsent mail means for them; it never throws.
  */
 export async function sendMail(message: MailMessage): Promise<boolean> {
+  if (zeptoMailConfigured()) {
+    return sendViaZeptoMail(message);
+  }
+
   const transporter = getTransporter();
   if (!transporter) {
-    console.warn(logLine({ status: 'SKIPPED', subject: message.subject, reason: 'SMTP is not configured' }));
+    console.warn(logLine({ status: 'SKIPPED', subject: message.subject, reason: 'No mail transport is configured' }));
     return false;
   }
 
@@ -70,12 +156,13 @@ export async function sendMail(message: MailMessage): Promise<boolean> {
       text: message.text,
       html: message.html,
     });
-    console.info(logLine({ status: 'SENT', subject: message.subject, messageId: info.messageId }));
+    console.info(logLine({ status: 'SENT', via: 'smtp', subject: message.subject, messageId: info.messageId }));
     return true;
   } catch (error) {
     console.error(
       logLine({
         status: 'FAILED',
+        via: 'smtp',
         subject: message.subject,
         reason: error instanceof Error ? error.message : String(error),
       }),

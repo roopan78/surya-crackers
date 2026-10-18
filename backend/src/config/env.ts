@@ -57,6 +57,15 @@ const envSchema = z.object({
   // to SMTP_USER when unset.
   MAIL_FROM: z.string().default(''),
 
+  // ZeptoMail (Zoho's transactional service) over HTTPS. Preferred over SMTP
+  // when set, because this host cannot open outbound SMTP connections at all —
+  // ports 587 and 465 to Zoho both time out, so mail has to leave over 443.
+  // Token comes from the Mail Agent's Setup Info page.
+  ZEPTOMAIL_TOKEN: z.string().default(''),
+  // Regional host: .com for most accounts, .in for India-hosted ones. The
+  // agent's Setup Info page shows which to use.
+  ZEPTOMAIL_API_URL: z.string().default('https://api.zeptomail.com/v1.1/email'),
+
   // Cloudinary — product image hosting. The browser uploads directly to
   // Cloudinary using a short-lived signature minted here, so image bytes never
   // pass through this API and are not limited by its request body size.
