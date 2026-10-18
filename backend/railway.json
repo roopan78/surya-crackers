@@ -6,7 +6,8 @@
     "buildCommand": "npm install --include=dev --no-audit --no-fund && npm run build"
   },
   "deploy": {
-    "startCommand": "npm run start",
+    "//startCommand": "Migrations run here, inside Railway, where DATABASE_URL resolves to the internal Postgres host — so shipping a schema change needs no direct database access from anyone's laptop. `migrate deploy` only applies migrations missing from _prisma_migrations, so a redeploy with nothing new is a no-op. It deliberately fails the boot rather than starting anyway: code that expects a column the database lacks would fail every query that touches the table.",
+    "startCommand": "npm run prisma:deploy && npm run start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 5
   }
