@@ -32,9 +32,9 @@ function smtpConfigured(): boolean {
   return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD);
 }
 
-/** False when neither transport is set up — every send is then skipped. */
+/** False when no transport is set up — every send is then skipped. */
 export function isMailConfigured(): boolean {
-  return zeptoMailConfigured() || smtpConfigured();
+  return zohoMailConfigured() || zeptoMailConfigured() || smtpConfigured();
 }
 
 /**
@@ -138,6 +138,11 @@ function logLine(fields: Record<string, unknown>): string {
  * what an unsent mail means for them; it never throws.
  */
 export async function sendMail(message: MailMessage): Promise<boolean> {
+  // HTTPS transports first — SMTP is unreachable from some hosts, including
+  // this one in production, so it is the last resort rather than the default.
+  if (zohoMailConfigured()) {
+    return sendViaZohoMail(message);
+  }
   if (zeptoMailConfigured()) {
     return sendViaZeptoMail(message);
   }
@@ -163,6 +168,136 @@ export async function sendMail(message: MailMessage): Promise<boolean> {
       logLine({
         status: 'FAILED',
         via: 'smtp',
+        subject: message.subject,
+        reason: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    return false;
+  }
+}
+
+// ---------- Zoho Mail API (HTTPS) ----------
+
+/**
+ * Sends through an ordinary Zoho mailbox over the Mail API.
+ *
+ * Same reason as ZeptoMail — this host cannot open outbound SMTP — but it needs
+ * no extra product: it posts as the mailbox that already exists. The cost is
+ * OAuth: a long-lived refresh token mints short-lived access tokens, which are
+ * cached until shortly before they expire.
+ */
+function zohoMailConfigured(): boolean {
+  return Boolean(
+    env.ZOHO_MAIL_CLIENT_ID && env.ZOHO_MAIL_CLIENT_SECRET && env.ZOHO_MAIL_REFRESH_TOKEN,
+  );
+}
+
+let cachedAccessToken: { value: string; expiresAt: number } | null = null;
+/** The mailbox's numeric account id, part of the send URL. Looked up once. */
+let cachedAccountId: string | null = null;
+
+async function getZohoAccessToken(): Promise<string> {
+  // 60s of slack so a token cannot expire between the check and the send.
+  if (cachedAccessToken && cachedAccessToken.expiresAt > Date.now() + 60_000) {
+    return cachedAccessToken.value;
+  }
+
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: env.ZOHO_MAIL_CLIENT_ID,
+    client_secret: env.ZOHO_MAIL_CLIENT_SECRET,
+    refresh_token: env.ZOHO_MAIL_REFRESH_TOKEN,
+  });
+
+  const res = await fetch(`${env.ZOHO_ACCOUNTS_HOST}/oauth/v2/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error?: string;
+  };
+  if (!res.ok || !data.access_token) {
+    throw new Error(`token refresh failed: HTTP ${res.status} ${data.error ?? ''}`.trim());
+  }
+
+  cachedAccessToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+  };
+  return cachedAccessToken.value;
+}
+
+async function getZohoAccountId(accessToken: string): Promise<string> {
+  if (cachedAccountId) {
+    return cachedAccountId;
+  }
+
+  const res = await fetch(`${env.ZOHO_MAIL_API_HOST}/api/accounts`, {
+    headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const data = (await res.json().catch(() => ({}))) as { data?: Array<{ accountId?: string }> };
+  const accountId = data.data?.[0]?.accountId;
+  if (!res.ok || !accountId) {
+    throw new Error(`account lookup failed: HTTP ${res.status}`);
+  }
+
+  cachedAccountId = String(accountId);
+  return cachedAccountId;
+}
+
+async function sendViaZohoMail(message: MailMessage): Promise<boolean> {
+  try {
+    const accessToken = await getZohoAccessToken();
+    const accountId = await getZohoAccountId(accessToken);
+    const from = env.ZOHO_MAIL_FROM || parseFrom(env.MAIL_FROM || env.SMTP_USER).address;
+
+    const res = await fetch(`${env.ZOHO_MAIL_API_HOST}/api/accounts/${accountId}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Zoho-oauthtoken ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fromAddress: from,
+        toAddress: message.to,
+        subject: message.subject,
+        // The API carries one body; the HTML version is the richer one and every
+        // mail client in practice renders it.
+        content: message.html ?? message.text,
+        mailFormat: message.html ? 'html' : 'plaintext',
+      }),
+      signal: AbortSignal.timeout(20_000),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      console.error(
+        logLine({
+          status: 'FAILED',
+          via: 'zohomail',
+          subject: message.subject,
+          reason: `HTTP ${res.status}`,
+          detail: detail.slice(0, 300),
+        }),
+      );
+      return false;
+    }
+
+    console.info(logLine({ status: 'SENT', via: 'zohomail', subject: message.subject }));
+    return true;
+  } catch (error) {
+    // A stale cached token would otherwise keep failing until the next restart.
+    cachedAccessToken = null;
+    console.error(
+      logLine({
+        status: 'FAILED',
+        via: 'zohomail',
         subject: message.subject,
         reason: error instanceof Error ? error.message : String(error),
       }),

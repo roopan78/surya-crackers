@@ -66,6 +66,19 @@ const envSchema = z.object({
   // agent's Setup Info page shows which to use.
   ZEPTOMAIL_API_URL: z.string().default('https://api.zeptomail.com/v1.1/email'),
 
+  // Zoho Mail API — sends through an ordinary Zoho mailbox over HTTPS, so it
+  // needs no separate product and no SMTP port. Used when all three OAuth
+  // values are set. The refresh token is long-lived; short-lived access tokens
+  // are minted from it and cached in memory.
+  ZOHO_MAIL_CLIENT_ID: z.string().default(''),
+  ZOHO_MAIL_CLIENT_SECRET: z.string().default(''),
+  ZOHO_MAIL_REFRESH_TOKEN: z.string().default(''),
+  // Must be an address the authenticated mailbox owns, or Zoho rejects the send.
+  ZOHO_MAIL_FROM: z.string().default(''),
+  // Data-centre hosts. India accounts use .in, most others .com.
+  ZOHO_ACCOUNTS_HOST: z.string().default('https://accounts.zoho.in'),
+  ZOHO_MAIL_API_HOST: z.string().default('https://mail.zoho.in'),
+
   // Cloudinary — product image hosting. The browser uploads directly to
   // Cloudinary using a short-lived signature minted here, so image bytes never
   // pass through this API and are not limited by its request body size.
