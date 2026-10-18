@@ -54,10 +54,11 @@ export interface WhatsAppShopDetails {
 }
 
 /**
- * WhatsApp gives us *bold*, _italic_, monospace and emoji — no colour, no
- * tables, no links worth styling. So the message is shaped with sections,
- * blank lines and one emoji per heading: enough structure to scan on a phone,
- * short of the decorated-banner look that reads as marketing spam.
+ * WhatsApp gives us *bold*, _italic_ and monospace, and nothing else — no
+ * colour, no tables, no alignment. So the structure comes from sections,
+ * blank lines and bold, and the text stays plain ASCII apart from the rupee
+ * sign: emoji did not render in the recipient's WhatsApp, and a message whose
+ * headings arrive as empty boxes is worse than one with no decoration at all.
  *
  * Every line below the items is dropped when the shop has not configured it,
  * so an incomplete footer config yields a shorter message, never "undefined".
@@ -67,29 +68,29 @@ export function buildOrderConfirmationMessage(order: Order, shop: WhatsAppShopDe
   const greeting = order.customerName ? `Hi ${order.customerName},` : 'Hi,';
 
   const lines: string[] = [
-    `🎆 *${shop.shopName.toUpperCase()}*`,
+    `*${shop.shopName.toUpperCase()}*`,
     '',
-    '✅ *Your order is ready for pickup*',
+    '*Your order is ready for pickup*',
     '',
     `${greeting} order *${order.orderNumber}* is packed and waiting for you.`,
     '',
-    '🧨 *Items*',
+    '*Items*',
     ...order.items.map(
-      (item) => `• ${item.name} — ${item.boxes} × ${formatRupees(item.price)} = *${formatRupees(item.price * item.boxes)}*`,
+      (item) => `- ${item.name}: ${item.boxes} x ${formatRupees(item.price)} = *${formatRupees(item.price * item.boxes)}*`,
     ),
     '',
-    `💰 *Total — ${formatRupees(order.estimatedTotal)}*`,
+    `*Total: ${formatRupees(order.estimatedTotal)}*`,
   ];
 
-  if (pickup) lines.push('', `📅 *Pickup:* ${pickup}`);
-  if (shop.address) lines.push(`📍 ${shop.address}`);
-  if (shop.phone) lines.push(`📞 ${shop.phone}`);
+  if (pickup) lines.push('', `*Pickup:* ${pickup}`);
+  if (shop.address) lines.push(`*Address:* ${shop.address}`);
+  if (shop.phone) lines.push(`*Phone:* ${shop.phone}`);
 
   lines.push(
     '',
-    '💵 Payment is collected at the counter when you collect the order.',
+    'Payment is collected at the counter when you collect the order.',
     '',
-    `Thank you for shopping with us 🙏`,
+    'Thank you for shopping with us.',
   );
 
   return lines.join('\n');
