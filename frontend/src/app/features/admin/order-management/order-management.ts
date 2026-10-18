@@ -1,11 +1,12 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { LucideAngularModule, ChevronDown, ChevronLeft, ChevronRight, Package, Pencil, Plus, Trash2 } from 'lucide-angular';
 import { AdminOrderService } from '../../../core/services/admin-order.service';
 import { AdminCatalogService } from '../../../core/services/admin-catalog.service';
 import { Order, OrderItem, OrderStatus, PaymentProviderType, RecordablePaymentProvider } from '../../../core/models';
 import { ToastService } from '../../../shared/services/toast.service';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 const PROVIDER_LABELS: Record<PaymentProviderType, string> = {
   CASH_ON_PICKUP: 'Cash',
@@ -36,7 +37,7 @@ const PICKER_RESULTS = 8;
 @Component({
   selector: 'app-order-management',
   standalone: true,
-  imports: [FormsModule, DatePipe, LucideAngularModule],
+  imports: [FormsModule, DatePipe, NgClass, LucideAngularModule, ConfirmModal],
   templateUrl: './order-management.html',
 })
 export class OrderManagement implements OnInit {
@@ -54,6 +55,19 @@ export class OrderManagement implements OnInit {
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly statusFilter = signal<OrderStatus | ''>('');
+
+  /**
+   * A cancellation waiting to be confirmed. Held rather than applied because
+   * cancelling emails the customer, which is not something to do on a stray
+   * click in a dropdown.
+   */
+  readonly pendingCancel = signal<Order | null>(null);
+  /**
+   * What each select is showing while it differs from the saved order — needed
+   * so dismissing the confirmation snaps the dropdown back instead of leaving
+   * it reading "Cancelled" for an order that is still pending.
+   */
+  readonly statusDraft = signal<Record<string, OrderStatus>>({});
   readonly searchTerm = signal('');
   readonly page = signal(1);
   readonly expandedId = signal<string | null>(null);
@@ -128,13 +142,83 @@ export class OrderManagement implements OnInit {
     this.page.set(Math.min(Math.max(1, page), this.totalPages()));
   }
 
+  /** The dropdown's value, which may be a choice not yet confirmed. */
+  shownStatus(order: Order): OrderStatus {
+    return this.statusDraft()[order.id] ?? order.status;
+  }
+
+  statusChanged(order: Order, status: OrderStatus): void {
+    if (status === order.status) {
+      return;
+    }
+    // Cancelling tells the customer by email, so it asks first. Every other
+    // transition is reversible from this same dropdown and saves immediately.
+    if (status === 'CANCELLED') {
+      this.statusDraft.update((drafts) => ({ ...drafts, [order.id]: status }));
+      this.pendingCancel.set(order);
+      return;
+    }
+    this.updateStatus(order.id, status);
+  }
+
+  confirmCancel(): void {
+    const order = this.pendingCancel();
+    if (!order) return;
+    this.pendingCancel.set(null);
+    this.updateStatus(order.id, 'CANCELLED');
+  }
+
+  dismissCancel(): void {
+    const order = this.pendingCancel();
+    this.pendingCancel.set(null);
+    if (order) {
+      this.clearDraft(order.id);
+    }
+  }
+
+  cancelMessage(order: Order): string {
+    const who = order.customerName || 'the customer';
+    return (
+      `Order ${order.orderNumber} will be cancelled and nothing prepared for collection. ` +
+      `${who} is emailed about the cancellation straight away, so only do this if they know.`
+    );
+  }
+
+  /** Colour the control by what it is showing, the way the status badges do. */
+  statusClass(order: Order): string {
+    switch (this.shownStatus(order)) {
+      case 'COMPLETED':
+        return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+      case 'READY_FOR_PICKUP':
+        return 'border-sky-200 bg-sky-50 text-sky-700';
+      case 'CANCELLED':
+        return 'border-rose-200 bg-rose-50 text-rose-700';
+      default:
+        return 'border-amber-200 bg-amber-50 text-amber-700';
+    }
+  }
+
+  private clearDraft(id: string): void {
+    this.statusDraft.update((drafts) => {
+      const next = { ...drafts };
+      delete next[id];
+      return next;
+    });
+  }
+
   updateStatus(id: string, status: OrderStatus): void {
     this.orderService.updateStatus(id, status).subscribe({
       next: () => {
-        this.toastService.success('Order status updated.');
+        this.toastService.success(
+          status === 'CANCELLED' ? 'Order cancelled — the customer has been emailed.' : 'Order status updated.',
+        );
+        this.clearDraft(id);
         this.loadOrders();
       },
-      error: () => this.toastService.error('Could not update order status — please try again.'),
+      error: () => {
+        this.clearDraft(id);
+        this.toastService.error('Could not update order status — please try again.');
+      },
     });
   }
 
